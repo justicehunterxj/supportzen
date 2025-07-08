@@ -36,12 +36,10 @@ export function TicketPage() {
   const [ticketToDelete, setTicketToDelete] = React.useState<string | null>(null);
   const { toast } = useToast();
 
-  const runningTicketsCount = React.useMemo(() => {
-    if (!activeShift) {
-      return 0;
-    }
-    return tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
-  }, [tickets, activeShift]);
+  let runningTicketsCount = 0;
+  if (activeShift) {
+    runningTicketsCount = tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
+  }
 
   const handleAddTicket = () => {
     setSelectedTicket(null);

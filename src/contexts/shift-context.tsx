@@ -16,6 +16,17 @@ interface ShiftContextType {
 
 const ShiftContext = React.createContext<ShiftContextType | undefined>(undefined);
 
+const getNextShiftId = (currentShifts: Shift[]): string => {
+    if (!currentShifts || currentShifts.length === 0) {
+        return 'SH-1';
+    }
+    const highestId = currentShifts
+        .map(s => parseInt(s.id.replace('SH-', ''), 10))
+        .filter(id => !isNaN(id))
+        .reduce((max, current) => Math.max(max, current), 0);
+    return `SH-${highestId + 1}`;
+};
+
 export function ShiftProvider({ children }: { children: React.ReactNode }) {
     const [shifts, setShifts] = React.useState<Shift[]>([]);
     const [isLoaded, setIsLoaded] = React.useState(false);
@@ -74,7 +85,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     const startNewShift = (newShiftData: Pick<Shift, 'name' | 'startTime'>) => {
         const newShift: Shift = {
             ...newShiftData,
-            id: `SH-${Date.now()}`,
+            id: getNextShiftId(shifts),
             status: 'Active',
             startedAt: new Date(),
         };

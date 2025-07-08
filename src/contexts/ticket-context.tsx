@@ -16,6 +16,17 @@ interface TicketContextType {
 
 const TicketContext = React.createContext<TicketContextType | undefined>(undefined);
 
+const getNextTicketId = (currentTickets: Ticket[]): string => {
+    if (!currentTickets || currentTickets.length === 0) {
+        return 'TKT-001';
+    }
+    const highestId = currentTickets
+        .map(t => parseInt(t.id.replace('TKT-', ''), 10))
+        .filter(id => !isNaN(id))
+        .reduce((max, current) => Math.max(max, current), 0);
+    return `TKT-${(highestId + 1).toString().padStart(3, '0')}`;
+};
+
 export function TicketProvider({ children }: { children: React.ReactNode }) {
     const [tickets, setTickets] = React.useState<Ticket[]>([]);
     const [isLoaded, setIsLoaded] = React.useState(false);
@@ -72,7 +83,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         const now = new Date();
         const newTicket: Ticket = {
             ...ticketData,
-            id: `TKT-${Date.now()}`,
+            id: getNextTicketId(tickets),
             createdAt: now,
             updatedAt: now,
             shiftId: activeShift?.id,
