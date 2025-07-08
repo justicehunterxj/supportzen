@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { PlusCircle, MoreHorizontal, Pencil, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ShiftDialog } from '@/components/shift-dialog';
 import type { Shift, Ticket } from '@/lib/types';
