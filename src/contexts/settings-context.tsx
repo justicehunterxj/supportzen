@@ -8,19 +8,19 @@ export type TimeFormat = '12h' | '24h';
 interface SettingsContextType {
   timeFormat: TimeFormat;
   setTimeFormat: (format: TimeFormat) => void;
-  avatarUrl: string;
-  setAvatarUrl: (url: string) => void;
+  avatarUrl: string | undefined;
+  setAvatarUrl: (url: string | null | undefined) => void;
   theme: string | undefined;
   setTheme: (theme: string) => void;
 }
 
 const SettingsContext = React.createContext<SettingsContextType | undefined>(undefined);
 
-export const initialAvatar = "";
+export const initialAvatar = undefined;
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [timeFormat, setTimeFormatState] = React.useState<TimeFormat>('12h');
-  const [avatarUrl, setAvatarUrlState] = React.useState<string>(initialAvatar);
+  const [avatarUrl, setAvatarUrlState] = React.useState<string | undefined>(initialAvatar);
   const { theme, setTheme } = useTheme();
 
   React.useEffect(() => {
@@ -29,7 +29,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setTimeFormatState(storedTimeFormat);
     }
     const storedAvatarUrl = localStorage.getItem('avatarUrl');
-    setAvatarUrlState(storedAvatarUrl || initialAvatar);
+    setAvatarUrlState(storedAvatarUrl || undefined);
   }, []);
 
   const setTimeFormat = (format: TimeFormat) => {
@@ -37,9 +37,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setTimeFormatState(format);
   };
 
-  const setAvatarUrl = (url: string) => {
-    localStorage.setItem('avatarUrl', url);
-    setAvatarUrlState(url);
+  const setAvatarUrl = (url: string | null | undefined) => {
+    if (url) {
+      localStorage.setItem('avatarUrl', url);
+      setAvatarUrlState(url);
+    } else {
+      localStorage.removeItem('avatarUrl');
+      setAvatarUrlState(undefined);
+    }
   };
 
   return (
