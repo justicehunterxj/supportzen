@@ -19,6 +19,34 @@ export default function DashboardPage() {
   const totalTickets = tickets.length;
   const totalEarnings = (tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length * 1.33).toFixed(2);
 
+  const avgResponseTime = React.useMemo(() => {
+    const resolvedAndClosedTickets = tickets.filter(
+      t => (t.status === 'Resolved' || t.status === 'Closed') && t.updatedAt
+    );
+    
+    if (resolvedAndClosedTickets.length === 0) return '0m';
+
+    const totalResponseTimeMs = resolvedAndClosedTickets.reduce((acc, ticket) => {
+      const created = new Date(ticket.createdAt).getTime();
+      const updated = new Date(ticket.updatedAt).getTime();
+      if (updated > created) {
+        return acc + (updated - created);
+      }
+      return acc;
+    }, 0);
+
+    const avgResponseTimeMs = totalResponseTimeMs / resolvedAndClosedTickets.length;
+
+    const avgHours = avgResponseTimeMs / (1000 * 60 * 60);
+    if (avgHours >= 1) {
+        return `${avgHours.toFixed(1)}h`;
+    } else {
+        const avgMinutes = avgResponseTimeMs / (1000 * 60);
+        return `${Math.round(avgMinutes)}m`;
+    }
+  }, [tickets]);
+
+
   const stats = [
     { 
       title: 'Open Tickets', 
@@ -34,7 +62,7 @@ export default function DashboardPage() {
     },
     { 
       title: 'Avg. Response Time', 
-      value: totalTickets > 0 ? '1.2h' : '0h', 
+      value: avgResponseTime, 
       icon: Clock, 
       ...(totalTickets > 0 && { change: '10% faster', changeType: 'increase' as const })
     },
