@@ -25,14 +25,23 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
+import { useShifts } from '@/contexts/shift-context';
 
 export function TicketPage() {
   const { tickets, addTicket, updateTicket, deleteTicket } = useTickets();
+  const { activeShift } = useShifts();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const [ticketToDelete, setTicketToDelete] = React.useState<string | null>(null);
   const { toast } = useToast();
+
+  const runningTicketsCount = React.useMemo(() => {
+    if (!activeShift) {
+      return 0;
+    }
+    return tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
+  }, [tickets, activeShift]);
 
   const handleAddTicket = () => {
     setSelectedTicket(null);
@@ -81,7 +90,14 @@ export function TicketPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          {activeShift && (
+            <p className="text-sm text-muted-foreground">
+              Tickets this shift: <span className="font-semibold text-foreground">{runningTicketsCount}</span>
+            </p>
+          )}
+        </div>
         <Button onClick={handleAddTicket} className="gap-2">
           <PlusCircle className="h-4 w-4" />
           Add New Ticket
