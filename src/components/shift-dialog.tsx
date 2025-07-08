@@ -50,21 +50,29 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave, isStartingShift 
   });
 
   React.useEffect(() => {
-    if (isOpen) {
-        if (shift) {
-            form.reset({
-                name: shift.name,
-                startTime: shift.startTime,
-            });
-        } else {
-            const defaultShiftName = format(new Date(), "MMMM d, yyyy (EEEE) 'Shift'");
-            form.reset({
-                name: defaultShiftName,
-                startTime: '',
-            });
-        }
+    if (!isOpen) return;
+
+    if (isStartingShift && shift) {
+      const now = new Date();
+      const defaultShiftName = format(now, "MMMM d, yyyy (EEEE) 'Shift at' h:mm a");
+      const defaultStartTime = format(now, 'HH:mm');
+      form.reset({
+        name: defaultShiftName,
+        startTime: defaultStartTime,
+      });
+    } else if (shift) {
+      form.reset({
+        name: shift.name,
+        startTime: shift.startTime,
+      });
+    } else {
+      const defaultShiftName = format(new Date(), "MMMM d, yyyy (EEEE) 'Shift'");
+      form.reset({
+        name: defaultShiftName,
+        startTime: '',
+      });
     }
-  }, [shift, form, isOpen]);
+  }, [shift, form, isOpen, isStartingShift]);
 
   const onSubmit = (data: ShiftFormValues) => {
     onSave({

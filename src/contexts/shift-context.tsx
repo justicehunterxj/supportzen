@@ -22,11 +22,9 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     const activeShift = React.useMemo(() => shifts.find(s => s.status === 'Active'), [shifts]);
 
     const startShift = (shiftToStart: Shift) => {
-        const newStartTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-        
         setShifts(prevShifts => prevShifts.map(s => {
             if (s.id === shiftToStart.id) {
-                return { ...shiftToStart, status: 'Active', startTime: newStartTime, endTime: undefined };
+                return { ...shiftToStart, status: 'Active', endTime: undefined };
             }
             if (s.status === 'Active') {
                 return { ...s, status: 'Completed', endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) };
