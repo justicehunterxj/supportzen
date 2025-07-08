@@ -18,10 +18,30 @@ export default function DashboardPage() {
   const totalEarnings = (tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length * 1.33).toFixed(2);
 
   const stats = [
-    { title: 'Open Tickets', value: openTickets.toString(), icon: TicketIcon, change: '+5 this week', changeType: 'increase' as const },
-    { title: 'Resolved Today', value: resolvedToday.toString(), icon: CheckCircle, change: '-2 from yesterday', changeType: 'decrease' as const },
-    { title: 'Avg. Response Time', value: '1.2h', icon: Clock, change: '10% faster', changeType: 'increase' as const },
-    { title: 'Total Earnings', value: `$${totalEarnings}`, icon: DollarSign, change: '+12% this month', changeType: 'increase' as const },
+    { 
+      title: 'Open Tickets', 
+      value: openTickets.toString(), 
+      icon: TicketIcon, 
+      ...(totalTickets > 0 && { change: '+5 this week', changeType: 'increase' as const })
+    },
+    { 
+      title: 'Resolved Today', 
+      value: resolvedToday.toString(), 
+      icon: CheckCircle, 
+      ...(totalTickets > 0 && { change: '-2 from yesterday', changeType: 'decrease' as const })
+    },
+    { 
+      title: 'Avg. Response Time', 
+      value: totalTickets > 0 ? '1.2h' : '0h', 
+      icon: Clock, 
+      ...(totalTickets > 0 && { change: '10% faster', changeType: 'increase' as const })
+    },
+    { 
+      title: 'Total Earnings', 
+      value: `$${totalEarnings}`, 
+      icon: DollarSign, 
+      ...(totalTickets > 0 && { change: '+12% this month', changeType: 'increase' as const })
+    },
   ];
   
   const recentTickets = tickets.slice(0, 5);
@@ -51,17 +71,25 @@ export default function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentTickets.map((ticket: Ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-medium">{ticket.id}</TableCell>
-                  <TableCell className="max-w-xs truncate">{ticket.title}</TableCell>
-                  <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={ticket.status} />
+              {recentTickets.length > 0 ? (
+                recentTickets.map((ticket: Ticket) => (
+                  <TableRow key={ticket.id}>
+                    <TableCell className="font-medium">{ticket.id}</TableCell>
+                    <TableCell className="max-w-xs truncate">{ticket.title}</TableCell>
+                    <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={ticket.status} />
+                    </TableCell>
+                    <TableCell>{new Date(ticket.createdAt).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    No recent tickets.
                   </TableCell>
-                  <TableCell>{new Date(ticket.createdAt).toLocaleDateString()}</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>
