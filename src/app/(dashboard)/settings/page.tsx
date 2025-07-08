@@ -171,7 +171,12 @@ export default function SettingsPage() {
                     setTickets(parsedTickets);
                 }
                 if (Array.isArray(importedData.shifts)) {
-                    setShifts(importedData.shifts as Shift[]);
+                    const parsedShifts: Shift[] = importedData.shifts.map((s: any) => ({
+                        ...s,
+                        startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
+                        endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
+                    }));
+                    setShifts(parsedShifts);
                 }
 
                 toast({
