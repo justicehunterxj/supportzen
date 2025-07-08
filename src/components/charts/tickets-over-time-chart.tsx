@@ -8,7 +8,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { mockTickets } from '@/lib/mock-data';
+import { useTickets } from '@/contexts/ticket-context';
 import { useMemo } from 'react';
 
 const chartConfig = {
@@ -23,6 +23,7 @@ const chartConfig = {
 };
 
 export function TicketsOverTimeChart() {
+  const { tickets } = useTickets();
   const chartData = useMemo(() => {
     const dataByDate: Record<string, { created: number; resolved: number }> = {};
     for (let i = 6; i >= 0; i--) {
@@ -32,7 +33,7 @@ export function TicketsOverTimeChart() {
       dataByDate[dateString] = { created: 0, resolved: 0 };
     }
 
-    mockTickets.forEach(ticket => {
+    tickets.forEach(ticket => {
       const createdAt = new Date(ticket.createdAt);
       const dateString = createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
       if (dataByDate[dateString]) {
@@ -47,7 +48,7 @@ export function TicketsOverTimeChart() {
       date,
       ...values,
     }));
-  }, []);
+  }, [tickets]);
 
   return (
     <ChartContainer config={chartConfig} className="max-h-[300px] w-full">

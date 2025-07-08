@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
 import { TicketDialog } from '@/components/ticket-dialog';
-import { mockTickets } from '@/lib/mock-data';
 import type { Ticket } from '@/lib/types';
 import {
   DropdownMenu,
@@ -25,9 +24,10 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { useTickets } from '@/contexts/ticket-context';
 
 export function TicketPage() {
-  const [tickets, setTickets] = React.useState<Ticket[]>(mockTickets);
+  const { tickets, addTicket, updateTicket, deleteTicket } = useTickets();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
@@ -51,7 +51,7 @@ export function TicketPage() {
   
   const handleDeleteConfirm = () => {
     if (ticketToDelete) {
-      setTickets(tickets.filter(t => t.id !== ticketToDelete));
+      deleteTicket(ticketToDelete);
       toast({
         title: "Ticket Deleted",
         description: `Ticket with ID ${ticketToDelete} has been successfully deleted.`,
@@ -63,17 +63,17 @@ export function TicketPage() {
 
   const handleSaveTicket = (ticketData: Ticket) => {
     if (selectedTicket) {
-      setTickets(tickets.map(t => (t.id === ticketData.id ? ticketData : t)));
+      updateTicket(ticketData);
       toast({
         title: "Ticket Updated",
         description: `Ticket ${ticketData.id} has been successfully updated.`,
       });
     } else {
-      const newTicket = { ...ticketData, id: `TKT-${String(tickets.length + 1).padStart(3, '0')}` };
-      setTickets([newTicket, ...tickets]);
+      const {id, createdAt, ...newTicketData} = ticketData;
+      addTicket(newTicketData);
       toast({
         title: "Ticket Created",
-        description: `New ticket ${newTicket.id} has been successfully created.`,
+        description: `A new ticket has been successfully created.`,
       });
     }
     setSelectedTicket(null);

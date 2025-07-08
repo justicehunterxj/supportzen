@@ -8,9 +8,12 @@ import { useShifts } from '@/contexts/shift-context';
 import { ShiftDialog } from '@/components/shift-dialog';
 import type { Shift } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useSettings } from '@/contexts/settings-context';
+import { format } from 'date-fns';
 
 export function ShiftTimer() {
     const { shifts, activeShift, startShift, endActiveShift } = useShifts();
+    const { timeFormat } = useSettings();
     const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [shiftToStart, setShiftToStart] = React.useState<Shift | null>(null);
@@ -61,11 +64,19 @@ export function ShiftTimer() {
         }
     };
 
+    const formatTime = (timeString: string) => {
+        if (!timeString) return '';
+        const [hours, minutes] = timeString.split(':');
+        const date = new Date();
+        date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+        return format(date, timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
+    }
+
     return (
         <>
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="outline" className="gap-2 w-32">
+                    <Button variant="outline" className="gap-2 w-32 justify-center">
                         <Clock className="h-4 w-4" />
                         <span className="font-mono">{activeShift ? elapsedTime : 'Shift Timer'}</span>
                     </Button>
@@ -84,7 +95,7 @@ export function ShiftTimer() {
                                     Active Shift: <span className="font-semibold">{activeShift.name}</span>
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Started at {activeShift.startTime}
+                                    Started at {formatTime(activeShift.startTime)}
                                 </p>
                                 <Button onClick={endActiveShift} className="w-full gap-2">
                                     <Square className="h-4 w-4" /> End Shift

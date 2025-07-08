@@ -6,14 +6,16 @@ import { StatCard } from '@/components/stat-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
-import { mockTickets } from '@/lib/mock-data';
 import type { Ticket } from '@/lib/types';
+import { useTickets } from '@/contexts/ticket-context';
 
 export default function DashboardPage() {
-  const openTickets = mockTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-  const resolvedToday = mockTickets.filter(t => t.status === 'Resolved' && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
-  const totalTickets = mockTickets.length;
-  const totalEarnings = (mockTickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length * 1.33).toFixed(2);
+  const { tickets } = useTickets();
+
+  const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+  const resolvedToday = tickets.filter(t => t.status === 'Resolved' && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
+  const totalTickets = tickets.length;
+  const totalEarnings = (tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length * 1.33).toFixed(2);
 
   const stats = [
     { title: 'Open Tickets', value: openTickets.toString(), icon: TicketIcon, change: '+5 this week', changeType: 'increase' as const },
@@ -22,7 +24,7 @@ export default function DashboardPage() {
     { title: 'Total Earnings', value: `$${totalEarnings}`, icon: DollarSign, change: '+12% this month', changeType: 'increase' as const },
   ];
   
-  const recentTickets = mockTickets.slice(0, 5);
+  const recentTickets = tickets.slice(0, 5);
 
   return (
     <div className="flex flex-col gap-6">

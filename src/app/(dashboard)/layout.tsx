@@ -28,6 +28,8 @@ import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ShiftProvider } from '@/contexts/shift-context';
+import { TicketProvider } from '@/contexts/ticket-context';
+import { SettingsProvider, useSettings } from '@/contexts/settings-context';
 import { ShiftTimer } from '@/components/shift-timer';
 
 const SupportZenIcon = () => (
@@ -38,12 +40,9 @@ const SupportZenIcon = () => (
     </svg>
   );
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { avatarUrl } = useSettings();
 
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -51,6 +50,11 @@ export default function DashboardLayout({
     { href: '/shifts', label: 'Shifts', icon: Clock },
     { href: '/analytics', label: 'Analytics', icon: BarChart2 },
     { href: '/earnings', label: 'Earnings', icon: DollarSign },
+  ];
+  
+  const bottomMenuItems = [
+    { href: '/settings', label: 'Settings', icon: Settings },
+    { href: '#', label: 'Help', icon: HelpCircle },
   ];
 
   return (
@@ -82,22 +86,24 @@ export default function DashboardLayout({
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Help">
-                <HelpCircle/>
-                <span>Help</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Settings">
-                <Settings/>
-                <span>Settings</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+             {bottomMenuItems.map((item) => (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === item.href}
+                  tooltip={item.label}
+                >
+                  <Link href={item.href}>
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
              <SidebarMenuItem>
                 <div className="flex items-center gap-2 p-2">
                     <Avatar className="h-10 w-10 border">
-                        <AvatarImage src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="Admin" />
+                        <AvatarImage src={avatarUrl} alt="Admin" />
                         <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
@@ -122,7 +128,7 @@ export default function DashboardLayout({
                   <span className="sr-only">Manage Team</span>
               </Button>
               <Avatar className="h-9 w-9 border">
-                  <AvatarImage src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="Admin" />
+                  <AvatarImage src={avatarUrl} alt="Admin" />
                   <AvatarFallback>AD</AvatarFallback>
               </Avatar>
           </header>
@@ -131,4 +137,18 @@ export default function DashboardLayout({
       </ShiftProvider>
     </SidebarProvider>
   );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SettingsProvider>
+      <TicketProvider>
+          <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      </TicketProvider>
+    </SettingsProvider>
+  )
 }

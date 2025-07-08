@@ -4,17 +4,18 @@ import * as React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { mockTickets } from '@/lib/mock-data';
 import { DollarSign, Coins } from 'lucide-react';
+import { useTickets } from '@/contexts/ticket-context';
 
 const TICKET_PRICE_USD = 1.33;
 
 export function EarningsPage() {
   const [exchangeRate, setExchangeRate] = React.useState(58.75); // Example rate
+  const { tickets } = useTickets();
 
   const resolvedTicketsCount = React.useMemo(() => {
-    return mockTickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
-  }, []);
+    return tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+  }, [tickets]);
 
   const totalEarningsUSD = resolvedTicketsCount * TICKET_PRICE_USD;
   const totalEarningsPHP = totalEarningsUSD * exchangeRate;

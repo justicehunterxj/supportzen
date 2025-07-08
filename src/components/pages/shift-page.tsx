@@ -25,9 +25,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { ShiftStatusBadge } from '@/components/shift-status-badge';
 import { useShifts } from '@/contexts/shift-context';
+import { useSettings } from '@/contexts/settings-context';
+import { format } from 'date-fns';
 
 export function ShiftPage() {
   const { shifts, setShifts } = useShifts();
+  const { timeFormat } = useSettings();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedShift, setSelectedShift] = React.useState<Shift | null>(null);
@@ -79,6 +82,14 @@ export function ShiftPage() {
     setSelectedShift(null);
   };
 
+  const formatTime = (timeString: string) => {
+    if (!timeString) return 'N/A';
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+    return format(date, timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -102,8 +113,8 @@ export function ShiftPage() {
             {shifts.map((shift) => (
               <TableRow key={shift.id}>
                 <TableCell className="font-medium">{shift.name}</TableCell>
-                <TableCell>{shift.startTime}</TableCell>
-                <TableCell>{shift.endTime || 'N/A'}</TableCell>
+                <TableCell>{formatTime(shift.startTime)}</TableCell>
+                <TableCell>{formatTime(shift.endTime || '')}</TableCell>
                 <TableCell>
                   <ShiftStatusBadge status={shift.status} />
                 </TableCell>

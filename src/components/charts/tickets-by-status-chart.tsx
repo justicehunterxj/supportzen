@@ -9,7 +9,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-import { mockTickets } from '@/lib/mock-data';
+import { useTickets } from '@/contexts/ticket-context';
 import { useMemo } from 'react';
 
 const chartConfig = {
@@ -35,8 +35,10 @@ const chartConfig = {
 };
 
 export function TicketsByStatusChart() {
+  const { tickets } = useTickets();
+
   const chartData = useMemo(() => {
-    const statusCounts = mockTickets.reduce((acc, ticket) => {
+    const statusCounts = tickets.reduce((acc, ticket) => {
       acc[ticket.status] = (acc[ticket.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
@@ -46,7 +48,7 @@ export function TicketsByStatusChart() {
       tickets: count,
       fill: chartConfig[status as keyof typeof chartConfig]?.color,
     }));
-  }, []);
+  }, [tickets]);
 
   return (
     <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
