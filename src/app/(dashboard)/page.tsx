@@ -2,7 +2,6 @@ import { Ticket as TicketIcon, CheckCircle, Clock, DollarSign } from 'lucide-rea
 import { StatCard } from '@/components/stat-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { StatusBadge } from '@/components/status-badge';
 import { mockTickets } from '@/lib/mock-data';
 import type { Ticket } from '@/lib/types';
@@ -39,9 +38,8 @@ export default function DashboardPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Description</TableHead>
+                <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Assignee</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
             </TableHeader>
@@ -49,18 +47,9 @@ export default function DashboardPage() {
               {recentTickets.map((ticket: Ticket) => (
                 <TableRow key={ticket.id}>
                   <TableCell className="font-medium">{ticket.id}</TableCell>
-                  <TableCell className="max-w-xs truncate">{ticket.description}</TableCell>
+                  <TableCell className="max-w-xs truncate">{ticket.title}</TableCell>
                   <TableCell>
                     <StatusBadge status={ticket.status} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={ticket.assignee.avatar} alt={ticket.assignee.name} />
-                        <AvatarFallback>{ticket.assignee.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <span>{ticket.assignee.name}</span>
-                    </div>
                   </TableCell>
                   <TableCell>{new Date(ticket.createdAt).toLocaleDateString()}</TableCell>
                 </TableRow>

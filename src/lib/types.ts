@@ -1,12 +1,13 @@
 export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
+export type AITool = 'ChatGPT' | 'Gemini' | 'Claude' | 'Copilot' | 'Perplexity';
 
 export type Ticket = {
   id: string;
+  title: string;
   description: string;
-  assignee: {
-    name: string;
-    avatar: string;
-  };
+  agentResponse?: string;
+  link?: string;
+  aiToolsUsed?: AITool[];
   status: TicketStatus;
   createdAt: Date;
 };

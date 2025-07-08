@@ -23,15 +23,21 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Wand2, Loader2 } from 'lucide-react';
-import type { Ticket, TicketStatus } from '@/lib/types';
+import type { Ticket, TicketStatus, AITool } from '@/lib/types';
 import { suggestStatus } from '@/ai/flows/suggestStatus';
 import { useToast } from '@/hooks/use-toast';
 
+const aiTools: AITool[] = ['ChatGPT', 'Gemini', 'Claude', 'Copilot', 'Perplexity'];
+
 const ticketSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters long.'),
   description: z.string().min(10, 'Description must be at least 10 characters long.'),
-  assigneeName: z.string().min(1, 'Assignee is required.'),
+  agentResponse: z.string().optional(),
+  link: z.string().url({ message: "Invalid URL" }).optional().or(z.literal('')),
+  aiToolsUsed: z.array(z.enum(aiTools)).optional(),
   status: z.enum(['Open', 'In Progress', 'Resolved', 'Closed']),
 });
 
@@ -51,8 +57,11 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
     defaultValues: {
+      title: '',
       description: '',
-      assigneeName: '',
+      agentResponse: '',
+      link: '',
+      aiToolsUsed: [],
       status: 'Open',
     },
   });
@@ -60,14 +69,20 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
   React.useEffect(() => {
     if (ticket) {
       form.reset({
+        title: ticket.title,
         description: ticket.description,
-        assigneeName: ticket.assignee.name,
+        agentResponse: ticket.agentResponse || '',
+        link: ticket.link || '',
+        aiToolsUsed: ticket.aiToolsUsed || [],
         status: ticket.status,
       });
     } else {
       form.reset({
+        title: '',
         description: '',
-        assigneeName: '',
+        agentResponse: '',
+        link: '',
+        aiToolsUsed: [],
         status: 'Open',
       });
     }
@@ -106,11 +121,11 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
   const onSubmit = (data: TicketFormValues) => {
     const ticketData: Ticket = {
       id: ticket?.id || '',
+      title: data.title,
       description: data.description,
-      assignee: {
-        name: data.assigneeName,
-        avatar: ticket?.assignee.avatar || `https://i.pravatar.cc/150?u=${data.assigneeName}`,
-      },
+      agentResponse: data.agentResponse,
+      link: data.link,
+      aiToolsUsed: data.aiToolsUsed,
       status: data.status,
       createdAt: ticket?.createdAt || new Date(),
     };
@@ -120,7 +135,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>{ticket ? 'Edit Ticket' : 'Add New Ticket'}</DialogTitle>
           <DialogDescription>
@@ -131,12 +146,12 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="description"
+              name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe the issue in detail..." {...field} rows={5}/>
+                    <Input placeholder="Enter a brief title for the ticket" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -144,13 +159,73 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
             />
             <FormField
               control={form.control}
-              name="assigneeName"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assignee</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. John Doe" {...field} />
+                    <Textarea placeholder="Describe the issue in detail..." {...field} rows={4}/>
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="agentResponse"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Agent Response</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Describe the resolution or next steps..." {...field} rows={4}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="link"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/issue/123" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="aiToolsUsed"
+              render={() => (
+                <FormItem>
+                    <FormLabel>AI Tools Used</FormLabel>
+                    <div className="grid grid-cols-3 gap-x-2 gap-y-2">
+                    {aiTools.map((tool) => (
+                      <FormField
+                        key={tool}
+                        control={form.control}
+                        name="aiToolsUsed"
+                        render={({ field }) => (
+                          <FormItem key={tool} className="flex flex-row items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(tool)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...(field.value || []), tool])
+                                    : field.onChange(field.value?.filter((value) => value !== tool));
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal text-sm">{tool}</FormLabel>
+                          </FormItem>
+                        )}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
