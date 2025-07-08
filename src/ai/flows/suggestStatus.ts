@@ -1,9 +1,9 @@
-import { runFlow } from '@genkit-ai/next/server';
-import { defineFlow } from 'genkit';
-import { z } from 'zod';
-import { ai } from '../genkit';
+'use server';
 
-export const ticketStatusSuggestion = defineFlow(
+import { z } from 'zod';
+import { ai } from '@/ai/genkit';
+
+const ticketStatusSuggestion = ai.defineFlow(
   {
     name: 'ticketStatusSuggestion',
     inputSchema: z.object({ ticketSummary: z.string() }),
@@ -16,7 +16,7 @@ export const ticketStatusSuggestion = defineFlow(
         history: [],
       });
 
-      const suggestedStatus = llmResponse.text().trim();
+      const suggestedStatus = llmResponse.text.trim();
 
       const validStatuses = ['Open', 'In Progress', 'Resolved', 'Closed'];
       const foundStatus = validStatuses.find(s => suggestedStatus.includes(s));
@@ -36,6 +36,5 @@ export const ticketStatusSuggestion = defineFlow(
 );
 
 export async function suggestStatus(ticketSummary: string) {
-  'use server';
-  return await runFlow(ticketStatusSuggestion, { ticketSummary });
+  return await ticketStatusSuggestion({ ticketSummary });
 }
