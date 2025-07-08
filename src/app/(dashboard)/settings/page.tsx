@@ -365,7 +365,7 @@ export default function SettingsPage() {
                         </RadioGroup>
                     </div>
                     <div className="space-y-2">
-                        <Label>Recent Tickets Display Limit</Label>
+                        <Label>Tickets Per Page</Label>
                         <RadioGroup
                             value={ticketDisplayLimit.toString()}
                             onValueChange={(value) => setTicketDisplayLimit(parseInt(value, 10))}

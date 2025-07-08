@@ -3,16 +3,18 @@
 import * as React from 'react';
 import { Ticket as TicketIcon, CheckCircle, Clock, DollarSign } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
 import type { Ticket } from '@/lib/types';
 import { useTickets } from '@/contexts/ticket-context';
 import { useSettings } from '@/contexts/settings-context';
+import { Button } from '@/components/ui/button';
 
 export default function DashboardPage() {
   const { tickets } = useTickets();
   const { ticketDisplayLimit } = useSettings();
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
   const resolvedToday = tickets.filter(t => t.status === 'Resolved' && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
@@ -74,7 +76,28 @@ export default function DashboardPage() {
     },
   ];
   
-  const recentTickets = ticketDisplayLimit === -1 ? tickets : tickets.slice(0, ticketDisplayLimit);
+  const totalPages = React.useMemo(() => {
+    if (ticketDisplayLimit === -1 || tickets.length === 0) return 1;
+    return Math.ceil(tickets.length / ticketDisplayLimit);
+  }, [tickets.length, ticketDisplayLimit]);
+
+  const recentTickets = React.useMemo(() => {
+    if (ticketDisplayLimit === -1) {
+      return tickets;
+    }
+    const startIndex = (currentPage - 1) * ticketDisplayLimit;
+    const endIndex = startIndex + ticketDisplayLimit;
+    return tickets.slice(startIndex, endIndex);
+  }, [tickets, currentPage, ticketDisplayLimit]);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages > 0 ? totalPages : 1);
+    }
+  }, [currentPage, totalPages]);
+  
+  const startIndex = (currentPage - 1) * ticketDisplayLimit;
+  const endIndex = Math.min(startIndex + ticketDisplayLimit, tickets.length);
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,7 +113,7 @@ export default function DashboardPage() {
           <CardDescription>
             {ticketDisplayLimit === -1 
               ? `Showing all ${tickets.length} tickets.`
-              : `Showing the latest ${recentTickets.length} of ${tickets.length} tickets.`
+              : `Showing ${recentTickets.length} of ${tickets.length} tickets.`
             }
           </CardDescription>
         </CardHeader>
@@ -128,6 +151,33 @@ export default function DashboardPage() {
             </TableBody>
           </Table>
         </CardContent>
+        {ticketDisplayLimit !== -1 && tickets.length > ticketDisplayLimit && (
+          <CardFooter>
+            <div className="flex w-full items-center justify-between">
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={currentPage >= totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </div>
   );

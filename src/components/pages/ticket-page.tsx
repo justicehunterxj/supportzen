@@ -37,15 +37,36 @@ export function TicketPage() {
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const [ticketToDelete, setTicketToDelete] = React.useState<string | null>(null);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const runningTicketsCount = React.useMemo(() => {
     if (!activeShift) return 0;
     return tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
   }, [tickets, activeShift]);
   
+  const totalPages = React.useMemo(() => {
+    if (ticketDisplayLimit === -1 || tickets.length === 0) return 1;
+    return Math.ceil(tickets.length / ticketDisplayLimit);
+  }, [tickets.length, ticketDisplayLimit]);
+
   const displayTickets = React.useMemo(() => {
-    return ticketDisplayLimit === -1 ? tickets : tickets.slice(0, ticketDisplayLimit);
-  }, [tickets, ticketDisplayLimit]);
+    if (ticketDisplayLimit === -1) {
+      return tickets;
+    }
+    const startIndex = (currentPage - 1) * ticketDisplayLimit;
+    const endIndex = startIndex + ticketDisplayLimit;
+    return tickets.slice(startIndex, endIndex);
+  }, [tickets, currentPage, ticketDisplayLimit]);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages > 0 ? totalPages : 1);
+    }
+  }, [currentPage, totalPages]);
+  
+  const startIndex = (currentPage - 1) * ticketDisplayLimit;
+  const startRange = tickets.length > 0 ? startIndex + 1 : 0;
+  const endRange = startIndex + displayTickets.length;
 
   const handleAddTicket = () => {
     setSelectedTicket(null);
@@ -102,7 +123,10 @@ export function TicketPage() {
             </p>
           )}
            <p className="text-sm text-muted-foreground">
-            {`Showing ${displayTickets.length} of ${tickets.length} tickets`}
+            {ticketDisplayLimit === -1 
+              ? `Showing all ${tickets.length} tickets`
+              : `Showing tickets ${startRange} to ${endRange} of ${tickets.length}`
+            }
           </p>
         </div>
         <Button onClick={handleAddTicket} className="gap-2 flex-shrink-0">
@@ -164,6 +188,29 @@ export function TicketPage() {
           </TableBody>
         </Table>
       </div>
+       {ticketDisplayLimit !== -1 && tickets.length > ticketDisplayLimit && (
+        <div className="flex w-full items-center justify-end gap-2">
+            <span className="mr-auto text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => p - 1)}
+                disabled={currentPage === 1}
+            >
+                Previous
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => p + 1)}
+                disabled={currentPage >= totalPages}
+            >
+                Next
+            </Button>
+        </div>
+      )}
       <TicketDialog
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
