@@ -90,8 +90,8 @@ export function TicketPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div>
+      <div className="flex items-center justify-end gap-4">
+        <div className="mr-auto">
           {activeShift && (
             <p className="text-sm text-muted-foreground">
               Tickets this shift: <span className="font-semibold text-foreground">{runningTicketsCount}</span>
