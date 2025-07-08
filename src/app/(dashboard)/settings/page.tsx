@@ -2,18 +2,28 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { useSettings } from '@/contexts/settings-context';
+import { useSettings, initialAvatar } from '@/contexts/settings-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { useShifts } from '@/contexts/shift-context';
-import { Download, Upload, Sun, Moon, Monitor } from 'lucide-react';
+import { Download, Upload, Sun, Moon, Monitor, Trash2 } from 'lucide-react';
 import type { Ticket, Shift, TicketCategory } from '@/lib/types';
 import type { TimeFormat } from '@/contexts/settings-context';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 export default function SettingsPage() {
@@ -26,6 +36,7 @@ export default function SettingsPage() {
     const { shifts, setShifts } = useShifts();
     const { toast } = useToast();
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [isClearAlertOpen, setIsClearAlertOpen] = React.useState(false);
 
     const handleAvatarChange = () => {
         // Simple avatar change by cycling through a few pravatar images
@@ -157,6 +168,38 @@ export default function SettingsPage() {
         reader.readAsText(file);
     };
 
+    const handleClearDataConfirm = () => {
+        try {
+            // Clear all tickets and shifts
+            setTickets([]);
+            setShifts([]);
+
+            // Reset settings to default
+            setAvatarUrl(initialAvatar);
+            setTheme('system');
+            setTimeFormat('12h');
+
+            // Clear local storage as well
+            localStorage.removeItem('avatarUrl');
+            localStorage.removeItem('timeFormat');
+            // 'theme' is handled by next-themes library, no need to remove manually
+
+            toast({
+                title: "Data Cleared",
+                description: "All your data has been wiped. The dashboard is now in a fresh state.",
+            });
+        } catch (error) {
+            console.error("Failed to clear data", error);
+            toast({
+                variant: 'destructive',
+                title: "Clear Data Failed",
+                description: "Could not clear your data. Please try again.",
+            });
+        } finally {
+            setIsClearAlertOpen(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <Card>
@@ -220,7 +263,7 @@ export default function SettingsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Data Management</CardTitle>
-                    <CardDescription>Import or export your dashboard data and settings.</CardDescription>
+                    <CardDescription>Import, export, or clear your dashboard data and settings.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex gap-4">
                      <Button onClick={handleExport} variant="outline" className="gap-2">
@@ -231,6 +274,10 @@ export default function SettingsPage() {
                         <Upload className="h-4 w-4"/>
                         Import Data
                     </Button>
+                     <Button onClick={() => setIsClearAlertOpen(true)} variant="destructive" className="gap-2">
+                        <Trash2 className="h-4 w-4"/>
+                        Clear Data
+                    </Button>
                     <Input
                         type="file"
                         ref={fileInputRef}
@@ -240,6 +287,26 @@ export default function SettingsPage() {
                     />
                 </CardContent>
             </Card>
+
+            <AlertDialog open={isClearAlertOpen} onOpenChange={setIsClearAlertOpen}>
+                <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete all your tickets and shifts, and reset your settings.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                        className={buttonVariants({ variant: "destructive" })}
+                        onClick={handleClearDataConfirm}
+                    >
+                        Wipe Data
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

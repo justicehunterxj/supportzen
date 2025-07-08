@@ -16,7 +16,7 @@ interface SettingsContextType {
 
 const SettingsContext = React.createContext<SettingsContextType | undefined>(undefined);
 
-const initialAvatar = "https://i.pravatar.cc/150?u=a04258114e29026702d";
+export const initialAvatar = "https://i.pravatar.cc/150?u=a04258114e29026702d";
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [timeFormat, setTimeFormatState] = React.useState<TimeFormat>('12h');
