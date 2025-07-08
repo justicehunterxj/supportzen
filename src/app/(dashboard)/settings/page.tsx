@@ -83,7 +83,7 @@ export default function SettingsPage() {
                     avatarUrl,
                     ticketDisplayLimit
                 },
-                tickets: tickets.map(t => ({...t, createdAt: t.createdAt.toISOString()})),
+                tickets: tickets.map(t => ({...t, createdAt: t.createdAt.toISOString(), updatedAt: t.updatedAt.toISOString()})),
                 shifts,
             };
             const dataStr = JSON.stringify(dataToExport, null, 2);
@@ -165,6 +165,7 @@ export default function SettingsPage() {
                             agentResponse,
                             category: mappedCategory,
                             createdAt: new Date(t.createdAt),
+                            updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
                         };
                     });
                     setTickets(parsedTickets);

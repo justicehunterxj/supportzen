@@ -124,6 +124,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
   };
 
   const onSubmit = (data: TicketFormValues) => {
+    const now = new Date();
     const ticketData: Ticket = {
       id: ticket?.id || '',
       title: data.title,
@@ -133,7 +134,8 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       link: data.link,
       aiToolsUsed: data.aiToolsUsed,
       status: data.status,
-      createdAt: ticket?.createdAt || new Date(),
+      createdAt: ticket?.createdAt || now,
+      updatedAt: ticket?.updatedAt || now,
     };
     onSave(ticketData);
     setIsOpen(false);

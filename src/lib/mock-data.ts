@@ -1,6 +1,9 @@
 import type { Ticket, Shift } from './types';
 import { format } from 'date-fns';
 
+const now = new Date();
+const yesterday = new Date(new Date().setDate(now.getDate() - 1));
+
 export const mockTickets: Ticket[] = [
   {
     id: 'TKT-001',
@@ -11,7 +14,8 @@ export const mockTickets: Ticket[] = [
     link: 'https://support.example.com/kb/12345',
     aiToolsUsed: ['Gemini', 'Copilot'],
     status: 'In Progress',
-    createdAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     shiftId: 'SH-2',
   },
   {
@@ -20,7 +24,8 @@ export const mockTickets: Ticket[] = [
     description: 'Cannot connect to the new office printer. Getting a network error.',
     category: ['Technical Issue'],
     status: 'Open',
-    createdAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
   },
   {
     id: 'TKT-003',
@@ -31,7 +36,8 @@ export const mockTickets: Ticket[] = [
     link: 'https://github.com/org/repo/issues/101',
     aiToolsUsed: ['ChatGPT'],
     status: 'Resolved',
-    createdAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    createdAt: yesterday,
+    updatedAt: yesterday,
     shiftId: 'SH-1',
   },
   {
@@ -40,7 +46,8 @@ export const mockTickets: Ticket[] = [
     description: 'Password reset link not working. User is locked out.',
     category: ['Account Issue'],
     status: 'Open',
-    createdAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
   },
   {
     id: 'TKT-005',
@@ -48,7 +55,8 @@ export const mockTickets: Ticket[] = [
     description: 'The issue with the login server has been identified and a patch is being deployed.',
     category: ['Technical Issue'],
     status: 'In Progress',
-    createdAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
     shiftId: 'SH-2',
   },
   {
@@ -59,7 +67,8 @@ export const mockTickets: Ticket[] = [
     agentResponse: 'Optimized the database query and increased the timeout limit. Export is now successful.',
     aiToolsUsed: ['Perplexity'],
     status: 'Closed',
-    createdAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    createdAt: yesterday,
+    updatedAt: yesterday,
     shiftId: 'SH-1',
   },
   {
@@ -70,13 +79,11 @@ export const mockTickets: Ticket[] = [
     agentResponse: 'Fixed the CSS for mobile viewports. The menu is now responsive.',
     link: 'https://github.com/org/repo/pull/243',
     status: 'Resolved',
-    createdAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    createdAt: yesterday,
+    updatedAt: yesterday,
     shiftId: 'SH-1',
   },
 ];
-
-const yesterday = new Date();
-yesterday.setDate(yesterday.getDate() - 1);
 
 const completedStartedAt = new Date(yesterday);
 completedStartedAt.setHours(8, 0, 0, 0);

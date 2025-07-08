@@ -69,7 +69,7 @@ export function TicketPage() {
         description: `Ticket ${ticketData.id} has been successfully updated.`,
       });
     } else {
-      const {id, createdAt, ...newTicketData} = ticketData;
+      const {id, createdAt, updatedAt, ...newTicketData} = ticketData;
       addTicket(newTicketData);
       toast({
         title: "Ticket Created",

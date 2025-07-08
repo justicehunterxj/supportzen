@@ -9,7 +9,7 @@ import { useShifts } from './shift-context';
 interface TicketContextType {
     tickets: Ticket[];
     setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt'>) => void;
+    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => void;
     updateTicket: (ticket: Ticket) => void;
     deleteTicket: (ticketId: string) => void;
 }
@@ -29,18 +29,21 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
             if (storedTickets) {
                 processedTickets = JSON.parse(storedTickets).map((t: any) => ({
                     ...t,
-                    createdAt: new Date(t.createdAt)
+                    createdAt: new Date(t.createdAt),
+                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt)
                 }));
             } else {
                 processedTickets = mockTickets;
             }
 
-            // Auto-close tickets older than 3 days
+            // Auto-close tickets based on status and age
             const now = new Date();
             const autoClosedTickets = processedTickets.map(ticket => {
-                const isAutoClosable = ticket.status === 'Open' || ticket.status === 'In Progress';
-                if (isAutoClosable && differenceInDays(now, ticket.createdAt) >= 3) {
-                    return { ...ticket, status: 'Closed' as const };
+                if (ticket.status === 'Open' && differenceInDays(now, ticket.createdAt) >= 3) {
+                    return { ...ticket, status: 'Closed' as const, updatedAt: now };
+                }
+                if (ticket.status === 'In Progress' && differenceInDays(now, ticket.updatedAt) >= 3) {
+                    return { ...ticket, status: 'Closed' as const, updatedAt: now };
                 }
                 return ticket;
             });
@@ -65,18 +68,24 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [tickets, isLoaded]);
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'shiftId'>) => {
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'shiftId'>) => {
+        const now = new Date();
         const newTicket: Ticket = {
             ...ticketData,
             id: `TKT-${Date.now()}`,
-            createdAt: new Date(),
+            createdAt: now,
+            updatedAt: now,
             shiftId: activeShift?.id,
         };
         setTickets(prevTickets => [newTicket, ...prevTickets]);
     };
 
     const updateTicket = (updatedTicket: Ticket) => {
-        setTickets(prevTickets => prevTickets.map(t => t.id === updatedTicket.id ? updatedTicket : t));
+        setTickets(prevTickets => prevTickets.map(t => 
+            t.id === updatedTicket.id 
+                ? { ...updatedTicket, updatedAt: new Date() } 
+                : t
+        ));
     };
 
     const deleteTicket = (ticketId: string) => {
