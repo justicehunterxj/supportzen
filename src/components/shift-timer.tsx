@@ -9,9 +9,11 @@ import { ShiftDialog } from '@/components/shift-dialog';
 import type { Shift } from '@/lib/types';
 import { useSettings } from '@/contexts/settings-context';
 import { format } from 'date-fns';
+import { useTickets } from '@/contexts/ticket-context';
 
 export function ShiftTimer() {
     const { activeShift, startNewShift, endActiveShift } = useShifts();
+    const { tickets, setTickets } = useTickets();
     const { timeFormat } = useSettings();
     const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -49,6 +51,25 @@ export function ShiftTimer() {
     
     const handleSaveAndStartShift = (shiftData: Shift) => {
         startNewShift({ name: shiftData.name, startTime: shiftData.startTime });
+    };
+
+    const handleEndShift = () => {
+        if (!activeShift || !activeShift.startedAt) return;
+
+        const startedAt = new Date(activeShift.startedAt);
+        const endedAt = new Date(); // The moment the shift ends
+
+        // Associate all tickets updated during the shift's timeframe with this shift
+        const updatedTickets = tickets.map(ticket => {
+            const updatedAt = new Date(ticket.updatedAt);
+            if (updatedAt >= startedAt && updatedAt <= endedAt) {
+                return { ...ticket, shiftId: activeShift.id };
+            }
+            return ticket;
+        });
+
+        setTickets(updatedTickets);
+        endActiveShift(); 
     };
 
     const formatTime = (timeString: string) => {
@@ -92,7 +113,7 @@ export function ShiftTimer() {
                                 <p className="text-xs text-muted-foreground">
                                     Started at {getFormattedStartTime()}
                                 </p>
-                                <Button onClick={endActiveShift} className="w-full gap-2">
+                                <Button onClick={handleEndShift} className="w-full gap-2">
                                     <Square className="h-4 w-4" /> End Shift
                                 </Button>
                             </div>
