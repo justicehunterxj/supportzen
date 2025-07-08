@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { useSettings, initialAvatar } from '@/contexts/settings-context';
+import { useSettings } from '@/contexts/settings-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { useShifts } from '@/contexts/shift-context';
@@ -206,7 +206,7 @@ export default function SettingsPage() {
             setShifts([]);
 
             // Reset settings to default
-            setAvatarUrl(initialAvatar);
+            setAvatarUrl('');
             setTheme('system');
             setTimeFormat('12h');
 
