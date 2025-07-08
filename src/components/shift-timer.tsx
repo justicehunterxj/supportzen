@@ -65,7 +65,7 @@ export function ShiftTimer() {
         <>
             <Popover>
                 <PopoverTrigger asChild>
-                    <Button variant="outline" className="gap-2 w-32 justify-start">
+                    <Button variant="outline" className="gap-2 w-32">
                         <Clock className="h-4 w-4" />
                         <span className="font-mono">{activeShift ? elapsedTime : 'Shift Timer'}</span>
                     </Button>
