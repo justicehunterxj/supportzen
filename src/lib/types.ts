@@ -19,8 +19,10 @@ export type Ticket = {
 export type Shift = {
   id: string;
   name: string;
-  startTime: string;
-  endTime?: string;
+  startTime: string; // Scheduled start time
+  endTime?: string; // Scheduled end time
+  startedAt?: Date;
+  endedAt?: Date;
   status: ShiftStatus;
 };
 

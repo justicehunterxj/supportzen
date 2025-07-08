@@ -20,19 +20,22 @@ export function ShiftTimer() {
     const { toast } = useToast();
 
     React.useEffect(() => {
-        if (!activeShift) {
+        if (!activeShift || !activeShift.startedAt) {
             setElapsedTime('00:00:00');
             return;
         }
 
-        const startTime = new Date();
-        const [hours, minutes] = activeShift.startTime.split(':');
-        startTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+        const startTime = new Date(activeShift.startedAt);
 
         const intervalId = setInterval(() => {
             const now = new Date();
             const diff = now.getTime() - startTime.getTime();
             
+            if (diff < 0) {
+                setElapsedTime('00:00:00');
+                return;
+            }
+
             const h = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
             const m = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
             const s = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
@@ -41,7 +44,7 @@ export function ShiftTimer() {
         }, 1000);
 
         return () => clearInterval(intervalId);
-    }, [activeShift]);
+    }, [activeShift, activeShift?.startedAt]);
     
     const handleStartClick = () => {
         const nextPendingShift = shifts.find(s => s.status === 'Pending');
@@ -71,6 +74,14 @@ export function ShiftTimer() {
         date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
         return format(date, timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
     }
+    
+    const getFormattedStartTime = () => {
+        if (!activeShift) return '';
+        if (activeShift.startedAt) {
+            return format(new Date(activeShift.startedAt), timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
+        }
+        return formatTime(activeShift.startTime);
+    }
 
     return (
         <>
@@ -95,7 +106,7 @@ export function ShiftTimer() {
                                     Active Shift: <span className="font-semibold">{activeShift.name}</span>
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                    Started at {formatTime(activeShift.startTime)}
+                                    Started at {getFormattedStartTime()}
                                 </p>
                                 <Button onClick={endActiveShift} className="w-full gap-2">
                                     <Square className="h-4 w-4" /> End Shift

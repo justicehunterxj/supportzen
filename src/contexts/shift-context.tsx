@@ -24,10 +24,10 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     const startShift = (shiftToStart: Shift) => {
         setShifts(prevShifts => prevShifts.map(s => {
             if (s.id === shiftToStart.id) {
-                return { ...shiftToStart, status: 'Active', endTime: undefined };
+                return { ...shiftToStart, status: 'Active', startedAt: new Date(), endedAt: undefined };
             }
             if (s.status === 'Active') {
-                return { ...s, status: 'Completed', endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) };
+                return { ...s, status: 'Completed', endedAt: new Date() };
             }
             return s;
         }));
@@ -40,8 +40,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     
     const endActiveShift = () => {
         if (activeShift) {
-            const endTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-            setShifts(shifts.map(s => s.id === activeShift.id ? { ...s, status: 'Completed', endTime: endTime } : s));
+            setShifts(shifts.map(s => s.id === activeShift.id ? { ...s, status: 'Completed', endedAt: new Date() } : s));
             toast({
                 title: "Shift Ended",
                 description: `Shift "${activeShift.name}" has been completed.`,

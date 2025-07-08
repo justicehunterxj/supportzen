@@ -69,9 +69,21 @@ export const mockTickets: Ticket[] = [
   },
 ];
 
+const yesterday = new Date();
+yesterday.setDate(yesterday.getDate() - 1);
+
+const completedStartedAt = new Date(yesterday);
+completedStartedAt.setHours(8, 0, 0, 0);
+const completedEndedAt = new Date(yesterday);
+completedEndedAt.setHours(16, 0, 0, 0);
+
+const activeStartedAt = new Date();
+activeStartedAt.setHours(activeStartedAt.getHours() - 1);
+
+
 export const mockShifts: Shift[] = [
-    { id: 'SH-1', name: 'Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed' },
-    { id: 'SH-2', name: 'Evening Shift', startTime: '16:00', status: 'Active' },
+    { id: 'SH-1', name: 'Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed', startedAt: completedStartedAt, endedAt: completedEndedAt },
+    { id: 'SH-2', name: 'Evening Shift', startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
     { id: 'SH-3', name: 'Night Shift', startTime: '00:00', status: 'Pending' },
     { id: 'SH-4', name: 'Weekend On-Call', startTime: '10:00', status: 'Pending' },
 ];
