@@ -84,7 +84,7 @@ export function ShiftTimer() {
             }
     
             if (currentTicket.shiftId === activeShift.id) {
-                if (currentTicket.status === 'Resolved' || currentTicket.status === 'Closed') {
+                if (currentTicket.status === 'Open' || currentTicket.status === 'Resolved' || currentTicket.status === 'Closed') {
                     currentTicket.isArchived = true;
                 }
             }
@@ -165,7 +165,7 @@ export function ShiftTimer() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>End Shift and Archive Tickets?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will end your current shift. Tickets that are 'Resolved' or 'Closed' will be moved to the History tab. 'In Progress' tickets will remain on the dashboard.
+                        This will end your current shift. Tickets that are 'Open', 'Resolved', or 'Closed' will be moved to the History tab. 'In Progress' tickets will remain on the dashboard.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
