@@ -16,13 +16,44 @@ interface TicketContextType {
 const TicketContext = React.createContext<TicketContextType | undefined>(undefined);
 
 export function TicketProvider({ children }: { children: React.ReactNode }) {
-    const [tickets, setTickets] = React.useState<Ticket[]>(mockTickets);
+    const [tickets, setTickets] = React.useState<Ticket[]>([]);
+    const [isLoaded, setIsLoaded] = React.useState(false);
     const { activeShift } = useShifts();
+    
+    React.useEffect(() => {
+        try {
+            const storedTickets = localStorage.getItem('tickets');
+            if (storedTickets) {
+                const parsedTickets = JSON.parse(storedTickets).map((t: any) => ({
+                    ...t,
+                    createdAt: new Date(t.createdAt)
+                }));
+                setTickets(parsedTickets);
+            } else {
+                setTickets(mockTickets);
+            }
+        } catch (error) {
+            console.error("Failed to load tickets from localStorage", error);
+            setTickets(mockTickets);
+        } finally {
+            setIsLoaded(true);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        if (isLoaded) {
+            try {
+                localStorage.setItem('tickets', JSON.stringify(tickets));
+            } catch (error) {
+                console.error("Failed to save tickets to localStorage", error);
+            }
+        }
+    }, [tickets, isLoaded]);
     
     const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'shiftId'>) => {
         const newTicket: Ticket = {
             ...ticketData,
-            id: `TKT-${String(tickets.length + 1).padStart(3, '0')}`,
+            id: `TKT-${Date.now()}`,
             createdAt: new Date(),
             shiftId: activeShift?.id,
         };

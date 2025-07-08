@@ -176,7 +176,7 @@ export default function SettingsPage() {
 
     const handleClearDataConfirm = () => {
         try {
-            // Clear all tickets and shifts
+            // Clear all tickets and shifts from state
             setTickets([]);
             setShifts([]);
 
@@ -185,7 +185,9 @@ export default function SettingsPage() {
             setTheme('system');
             setTimeFormat('12h');
 
-            // Clear local storage as well
+            // Explicitly set localStorage to empty arrays to persist the cleared state
+            localStorage.setItem('tickets', '[]');
+            localStorage.setItem('shifts', '[]');
             localStorage.removeItem('avatarUrl');
             localStorage.removeItem('timeFormat');
             // 'theme' is handled by next-themes library, no need to remove manually

@@ -82,7 +82,7 @@ export function ShiftPage() {
         description: "The shift has been successfully updated.",
       });
     } else {
-      const newShift = { ...shiftData, id: `SH-${shifts.length + 1}`, status: 'Pending' as const };
+      const newShift = { ...shiftData, id: `SH-${Date.now()}`, status: 'Pending' as const };
       setShifts([...shifts, newShift]);
       toast({
         title: "Shift Created",

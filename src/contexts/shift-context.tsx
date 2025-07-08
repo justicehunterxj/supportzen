@@ -16,8 +16,40 @@ interface ShiftContextType {
 const ShiftContext = React.createContext<ShiftContextType | undefined>(undefined);
 
 export function ShiftProvider({ children }: { children: React.ReactNode }) {
-    const [shifts, setShifts] = React.useState<Shift[]>(mockShifts);
+    const [shifts, setShifts] = React.useState<Shift[]>([]);
+    const [isLoaded, setIsLoaded] = React.useState(false);
     const { toast } = useToast();
+
+    React.useEffect(() => {
+        try {
+            const storedShifts = localStorage.getItem('shifts');
+            if (storedShifts) {
+                const parsedShifts = JSON.parse(storedShifts).map((s: any) => ({
+                    ...s,
+                    startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
+                    endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
+                }));
+                setShifts(parsedShifts);
+            } else {
+                setShifts(mockShifts);
+            }
+        } catch (error) {
+            console.error("Failed to load shifts from localStorage", error);
+            setShifts(mockShifts);
+        } finally {
+            setIsLoaded(true);
+        }
+    }, []);
+
+    React.useEffect(() => {
+        if (isLoaded) {
+            try {
+                localStorage.setItem('shifts', JSON.stringify(shifts));
+            } catch (error) {
+                console.error("Failed to save shifts to localStorage", error);
+            }
+        }
+    }, [shifts, isLoaded]);
 
     const activeShift = React.useMemo(() => shifts.find(s => s.status === 'Active'), [shifts]);
 
