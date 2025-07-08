@@ -104,7 +104,7 @@ export function TicketPage() {
               <TableRow key={ticket.id}>
                 <TableCell className="font-medium">{ticket.id}</TableCell>
                 <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
-                <TableCell>{ticket.category}</TableCell>
+                <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
                 <TableCell>
                   <StatusBadge status={ticket.status} />
                 </TableCell>

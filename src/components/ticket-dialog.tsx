@@ -25,7 +25,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Wand2, Loader2 } from 'lucide-react';
 import type { Ticket, TicketStatus, AITool, TicketCategory } from '@/lib/types';
 import { suggestStatus } from '@/ai/flows/suggestStatus';
@@ -37,7 +36,7 @@ const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments
 const ticketSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
   description: z.string().min(10, 'Description must be at least 10 characters long.'),
-  category: z.enum(ticketCategories, { required_error: 'You need to select a ticket category.' }),
+  category: z.array(z.enum(ticketCategories)).min(1, 'You must select at least one category.'),
   agentResponse: z.string().optional(),
   link: z.string().url({ message: "Invalid URL" }).optional().or(z.literal('')),
   aiToolsUsed: z.array(z.enum(aiTools)).optional(),
@@ -66,7 +65,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       link: '',
       aiToolsUsed: [],
       status: 'Open',
-      category: 'General Query',
+      category: [],
     },
   });
 
@@ -89,7 +88,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
         link: '',
         aiToolsUsed: [],
         status: 'Open',
-        category: 'General Query',
+        category: [],
       });
     }
   }, [ticket, form, isOpen]);
@@ -181,25 +180,44 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
             <FormField
               control={form.control}
               name="category"
-              render={({ field }) => (
-                <FormItem className="space-y-2">
+              render={() => (
+                <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      className="grid grid-cols-2 gap-x-4 gap-y-2"
-                    >
-                      {ticketCategories.map((category) => (
-                        <FormItem key={category} className="flex items-center space-x-2 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value={category} />
-                          </FormControl>
-                          <FormLabel className="font-normal text-sm">{category}</FormLabel>
-                        </FormItem>
-                      ))}
-                    </RadioGroup>
-                  </FormControl>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    {ticketCategories.map((category) => (
+                      <FormField
+                        key={category}
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={category}
+                              className="flex flex-row items-center space-x-2 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(category)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...(field.value || []), category])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== category
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal text-sm">
+                                {category}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

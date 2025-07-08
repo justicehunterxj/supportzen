@@ -8,7 +8,7 @@ export type Ticket = {
   id: string;
   title: string;
   description: string;
-  category: TicketCategory;
+  category: TicketCategory[];
   agentResponse?: string;
   link?: string;
   aiToolsUsed?: AITool[];
