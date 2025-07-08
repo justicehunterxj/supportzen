@@ -84,7 +84,11 @@ export default function SettingsPage() {
                     ticketDisplayLimit
                 },
                 tickets: tickets.map(t => ({...t, createdAt: t.createdAt.toISOString(), updatedAt: t.updatedAt.toISOString()})),
-                shifts,
+                shifts: shifts.map(s => ({
+                    ...s,
+                    startedAt: s.startedAt?.toISOString(),
+                    endedAt: s.endedAt?.toISOString(),
+                })),
             };
             const dataStr = JSON.stringify(dataToExport, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
@@ -133,7 +137,9 @@ export default function SettingsPage() {
                     if (importedData.settings.theme) setTheme(importedData.settings.theme);
                     if (importedData.settings.timeFormat) setTimeFormat(importedData.settings.timeFormat as TimeFormat);
                     if (importedData.settings.avatarUrl) setAvatarUrl(importedData.settings.avatarUrl);
-                    if (importedData.settings.ticketDisplayLimit) setTicketDisplayLimit(importedData.settings.ticketDisplayLimit);
+                    if (importedData.settings.ticketDisplayLimit !== undefined && importedData.settings.ticketDisplayLimit !== null) {
+                        setTicketDisplayLimit(importedData.settings.ticketDisplayLimit);
+                    }
                 }
                 if (Array.isArray(importedData.tickets)) {
                     const parsedTickets: Ticket[] = importedData.tickets.map((t: any) => {
