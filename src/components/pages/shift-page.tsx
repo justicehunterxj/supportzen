@@ -34,7 +34,7 @@ import { StatusBadge } from '@/components/status-badge';
 import { TicketDialog } from '@/components/ticket-dialog';
 
 export function ShiftPage() {
-  const { shifts, setShifts } = useShifts();
+  const { shifts, setShifts, addShift } = useShifts();
   const { timeFormat } = useSettings();
   const { tickets, updateTicket } = useTickets();
   const [isShiftDialogOpen, setIsShiftDialogOpen] = React.useState(false);
@@ -82,8 +82,8 @@ export function ShiftPage() {
         description: "The shift has been successfully updated.",
       });
     } else {
-      const newShift = { ...shiftData, id: `SH-${Date.now()}`, status: 'Pending' as const };
-      setShifts([...shifts, newShift]);
+      const { id, status, ...newShiftData } = shiftData;
+      addShift(newShiftData);
       toast({
         title: "Shift Created",
         description: "The new shift has been successfully created.",

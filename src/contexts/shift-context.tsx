@@ -9,6 +9,7 @@ interface ShiftContextType {
     shifts: Shift[];
     setShifts: React.Dispatch<React.SetStateAction<Shift[]>>;
     activeShift: Shift | undefined;
+    addShift: (shift: Omit<Shift, 'id' | 'status'>) => void;
     startNewShift: (newShiftData: Pick<Shift, 'name' | 'startTime'>) => void;
     endActiveShift: () => void;
 }
@@ -64,6 +65,15 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
 
     const activeShift = React.useMemo(() => shifts.find(s => s.status === 'Active'), [shifts]);
 
+    const addShift = (shiftData: Omit<Shift, 'id' | 'status'>) => {
+        const newShift: Shift = {
+            ...shiftData,
+            id: getNextShiftId(shifts),
+            status: 'Pending',
+        };
+        setShifts(prevShifts => [...prevShifts, newShift]);
+    };
+    
     const startNewShift = (newShiftData: Pick<Shift, 'name' | 'startTime'>) => {
         const newShift: Shift = {
             ...newShiftData,
@@ -96,7 +106,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, startNewShift, endActiveShift }}>
+        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, addShift, startNewShift, endActiveShift }}>
             {children}
         </ShiftContext.Provider>
     );
