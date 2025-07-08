@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function SettingsPage() {
@@ -37,6 +38,11 @@ export default function SettingsPage() {
     const { toast } = useToast();
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [isClearAlertOpen, setIsClearAlertOpen] = React.useState(false);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleAvatarChange = () => {
         // Simple avatar change by cycling through a few pravatar images
@@ -199,6 +205,63 @@ export default function SettingsPage() {
             setIsClearAlertOpen(false);
         }
     };
+
+    if (!mounted) {
+        return (
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Profile</CardTitle>
+                        <CardDescription>Manage your profile picture.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex items-center gap-6">
+                        <Skeleton className="h-20 w-20 rounded-full" />
+                        <Skeleton className="h-10 w-32" />
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Appearance</CardTitle>
+                        <CardDescription>Customize the look and feel of the app.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Theme</Label>
+                            <div className="flex space-x-2">
+                                <Skeleton className="h-10 w-10" />
+                                <Skeleton className="h-10 w-10" />
+                                <Skeleton className="h-10 w-10" />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Time Format</Label>
+                            <div className="flex space-x-4">
+                                <div className="flex items-center space-x-2">
+                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                    <Skeleton className="h-4 w-20" />
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                    <Skeleton className="h-4 w-20" />
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Data Management</CardTitle>
+                        <CardDescription>Import, export, or clear your dashboard data and settings.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex gap-4">
+                         <Skeleton className="h-10 w-32" />
+                         <Skeleton className="h-10 w-32" />
+                         <Skeleton className="h-10 w-32" />
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
