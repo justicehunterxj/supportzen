@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { differenceInDays } from 'date-fns';
 import { mockTickets } from '@/lib/mock-data';
 import type { Ticket } from '@/lib/types';
 import { useShifts } from './shift-context';
@@ -23,15 +24,29 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     React.useEffect(() => {
         try {
             const storedTickets = localStorage.getItem('tickets');
+            let processedTickets: Ticket[];
+
             if (storedTickets) {
-                const parsedTickets = JSON.parse(storedTickets).map((t: any) => ({
+                processedTickets = JSON.parse(storedTickets).map((t: any) => ({
                     ...t,
                     createdAt: new Date(t.createdAt)
                 }));
-                setTickets(parsedTickets);
             } else {
-                setTickets(mockTickets);
+                processedTickets = mockTickets;
             }
+
+            // Auto-close tickets older than 3 days
+            const now = new Date();
+            const autoClosedTickets = processedTickets.map(ticket => {
+                const isAutoClosable = ticket.status === 'Open' || ticket.status === 'In Progress';
+                if (isAutoClosable && differenceInDays(now, ticket.createdAt) >= 3) {
+                    return { ...ticket, status: 'Closed' as const };
+                }
+                return ticket;
+            });
+
+            setTickets(autoClosedTickets);
+
         } catch (error) {
             console.error("Failed to load tickets from localStorage", error);
             setTickets(mockTickets);
