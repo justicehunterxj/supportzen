@@ -36,7 +36,8 @@ export default function SettingsPage() {
     const { tickets, setTickets } = useTickets();
     const { shifts, setShifts } = useShifts();
     const { toast } = useToast();
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const importFileInputRef = React.useRef<HTMLInputElement>(null);
+    const avatarInputRef = React.useRef<HTMLInputElement>(null);
     const [isClearAlertOpen, setIsClearAlertOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
 
@@ -44,15 +45,39 @@ export default function SettingsPage() {
         setMounted(true);
     }, []);
 
-    const handleAvatarChange = () => {
-        // Simple avatar change by cycling through a few pravatar images
-        const newId = Math.random().toString(36).substring(7);
-        const newUrl = `https://i.pravatar.cc/150?u=${newId}`;
-        setAvatarUrl(newUrl);
-        toast({
-            title: "Avatar Updated",
-            description: "Your profile picture has been changed.",
-        });
+    const handleAvatarButtonClick = () => {
+        avatarInputRef.current?.click();
+    };
+
+    const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid File Type',
+                description: 'Please select an image file (e.g., PNG, JPG, GIF).',
+            });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const result = e.target?.result as string;
+            if (result) {
+                setAvatarUrl(result);
+                toast({
+                    title: "Avatar Updated",
+                    description: "Your profile picture has been changed.",
+                });
+            }
+        };
+        reader.readAsDataURL(file);
+        
+        if(avatarInputRef.current) {
+            avatarInputRef.current.value = "";
+        }
     };
     
     const handleExport = () => {
@@ -91,7 +116,7 @@ export default function SettingsPage() {
     };
 
     const handleImportClick = () => {
-        fileInputRef.current?.click();
+        importFileInputRef.current?.click();
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,8 +191,8 @@ export default function SettingsPage() {
                 });
             } finally {
                 // Reset file input
-                if(fileInputRef.current) {
-                    fileInputRef.current.value = "";
+                if(importFileInputRef.current) {
+                    importFileInputRef.current.value = "";
                 }
             }
         };
@@ -277,7 +302,14 @@ export default function SettingsPage() {
                         <AvatarImage src={avatarUrl} alt="Admin" />
                         <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
-                    <Button onClick={handleAvatarChange}>Change Picture</Button>
+                    <Button onClick={handleAvatarButtonClick}>Change Picture</Button>
+                    <Input
+                        type="file"
+                        ref={avatarInputRef}
+                        onChange={handleAvatarFileChange}
+                        className="hidden"
+                        accept="image/*"
+                    />
                 </CardContent>
             </Card>
 
@@ -345,7 +377,7 @@ export default function SettingsPage() {
                     </Button>
                     <Input
                         type="file"
-                        ref={fileInputRef}
+                        ref={importFileInputRef}
                         onChange={handleFileChange}
                         className="hidden"
                         accept="application/json"
