@@ -1,11 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ShiftDialog } from '@/components/shift-dialog';
-import type { Shift } from '@/lib/types';
+import type { Shift, Ticket } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,24 +27,33 @@ import { ShiftStatusBadge } from '@/components/shift-status-badge';
 import { useShifts } from '@/contexts/shift-context';
 import { useSettings } from '@/contexts/settings-context';
 import { format } from 'date-fns';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useTickets } from '@/contexts/ticket-context';
+import { StatusBadge } from '@/components/status-badge';
+import { TicketDialog } from '@/components/ticket-dialog';
 
 export function ShiftPage() {
   const { shifts, setShifts } = useShifts();
   const { timeFormat } = useSettings();
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const { tickets, updateTicket } = useTickets();
+  const [isShiftDialogOpen, setIsShiftDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedShift, setSelectedShift] = React.useState<Shift | null>(null);
   const [shiftToDelete, setShiftToDelete] = React.useState<string | null>(null);
+  
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = React.useState(false);
+  const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
+
   const { toast } = useToast();
 
   const handleAddShift = () => {
     setSelectedShift(null);
-    setIsDialogOpen(true);
+    setIsShiftDialogOpen(true);
   };
 
   const handleEditShift = (shift: Shift) => {
     setSelectedShift(shift);
-    setIsDialogOpen(true);
+    setIsShiftDialogOpen(true);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -81,6 +90,20 @@ export function ShiftPage() {
     }
     setSelectedShift(null);
   };
+  
+  const handleEditTicket = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsTicketDialogOpen(true);
+  };
+
+  const handleSaveTicket = (ticketData: Ticket) => {
+    updateTicket(ticketData);
+    toast({
+      title: "Ticket Updated",
+      description: `Ticket ${ticketData.id} has been successfully updated.`,
+    });
+    setSelectedTicket(null);
+  };
 
   const formatTime = (timeString: string) => {
     if (!timeString) return 'N/A';
@@ -90,6 +113,16 @@ export function ShiftPage() {
     return format(date, timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
   }
 
+  const formatDate = (date: Date | undefined) => {
+      if (!date) return '';
+      const d = new Date(date);
+      const timePart = format(d, timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
+      return `${format(d, 'MMM d, yyyy')} at ${timePart}`;
+  }
+
+  const completedShifts = shifts.filter(s => s.status === 'Completed').sort((a,b) => (b.endedAt?.getTime() || 0) - (a.endedAt?.getTime() || 0));
+  const otherShifts = shifts.filter(s => s.status !== 'Completed');
+
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
@@ -98,56 +131,131 @@ export function ShiftPage() {
           Add New Shift
         </Button>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Start Time</TableHead>
-              <TableHead>End Time</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {shifts.map((shift) => (
-              <TableRow key={shift.id}>
-                <TableCell className="font-medium">{shift.name}</TableCell>
-                <TableCell>{formatTime(shift.startTime)}</TableCell>
-                <TableCell>{formatTime(shift.endTime || '')}</TableCell>
-                <TableCell>
-                  <ShiftStatusBadge status={shift.status} />
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEditShift(shift)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDeleteClick(shift.id)} className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      
+      <Accordion type="single" collapsible className="w-full space-y-4">
+        {completedShifts.map((shift) => {
+          const shiftTickets = tickets.filter(ticket => ticket.shiftId === shift.id);
+          return (
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm" key={shift.id}>
+              <AccordionItem value={shift.id} className="border-b-0">
+                <AccordionTrigger className="p-6 hover:no-underline">
+                    <div className="flex justify-between w-full items-center">
+                      <div className="flex flex-col text-left">
+                          <span className="font-semibold">{shift.name}</span>
+                          <span className="text-sm text-muted-foreground">
+                              {formatDate(shift.startedAt)} - {formatDate(shift.endedAt)}
+                          </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                          <ShiftStatusBadge status={shift.status} />
+                          <span className="text-sm font-medium">{shiftTickets.length} ticket(s)</span>
+                      </div>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-6 pb-6">
+                  <div className="rounded-md border">
+                    {shiftTickets.length > 0 ? (
+                      <Table>
+                          <TableHeader>
+                              <TableRow>
+                                  <TableHead>ID</TableHead>
+                                  <TableHead>Title</TableHead>
+                                  <TableHead>Category</TableHead>
+                                  <TableHead>Status</TableHead>
+                                  <TableHead className="text-right">Actions</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {shiftTickets.map((ticket) => (
+                                  <TableRow key={ticket.id}>
+                                      <TableCell>{ticket.id}</TableCell>
+                                      <TableCell className="max-w-xs truncate">{ticket.title}</TableCell>
+                                      <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
+                                      <TableCell><StatusBadge status={ticket.status} /></TableCell>
+                                      <TableCell className="text-right">
+                                          <Button variant="ghost" size="icon" onClick={() => handleEditTicket(ticket)}>
+                                              <Edit className="h-4 w-4" />
+                                              <span className="sr-only">Edit Ticket</span>
+                                          </Button>
+                                      </TableCell>
+                                  </TableRow>
+                              ))}
+                          </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-4">No tickets were worked on during this shift.</p>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </div>
+          )
+        })}
+      </Accordion>
+      
+      {otherShifts.length > 0 && (
+        <Card>
+            <CardHeader>
+                <CardTitle>Upcoming & Active Shifts</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Scheduled Start</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {otherShifts.map((shift) => (
+                    <TableRow key={shift.id}>
+                        <TableCell className="font-medium">{shift.name}</TableCell>
+                        <TableCell>{formatTime(shift.startTime)}</TableCell>
+                        <TableCell>
+                        <ShiftStatusBadge status={shift.status} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditShift(shift)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteClick(shift.id)} className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+      )}
+
+
       <ShiftDialog
-        isOpen={isDialogOpen}
-        setIsOpen={setIsDialogOpen}
+        isOpen={isShiftDialogOpen}
+        setIsOpen={setIsShiftDialogOpen}
         shift={selectedShift}
         onSave={handleSaveShift}
+      />
+      <TicketDialog
+        isOpen={isTicketDialogOpen}
+        setIsOpen={setIsTicketDialogOpen}
+        ticket={selectedTicket}
+        onSave={handleSaveTicket}
       />
        <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>

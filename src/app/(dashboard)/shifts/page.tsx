@@ -7,7 +7,7 @@ export default function Shifts() {
       <CardHeader>
         <CardTitle>Shift Management</CardTitle>
         <CardDescription>
-          Organize and manage support staff schedules and shifts.
+          Review completed shifts and manage upcoming schedules.
         </CardDescription>
       </CardHeader>
       <CardContent>

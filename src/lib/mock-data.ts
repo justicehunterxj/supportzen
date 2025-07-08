@@ -10,7 +10,8 @@ export const mockTickets: Ticket[] = [
     link: 'https://support.example.com/kb/12345',
     aiToolsUsed: ['Gemini', 'Copilot'],
     status: 'In Progress',
-    createdAt: new Date(2023, 10, 28, 10, 0),
+    createdAt: new Date(),
+    shiftId: 'SH-2',
   },
   {
     id: 'TKT-002',
@@ -18,7 +19,7 @@ export const mockTickets: Ticket[] = [
     description: 'Cannot connect to the new office printer. Getting a network error.',
     category: ['Technical Issue'],
     status: 'Open',
-    createdAt: new Date(2023, 10, 28, 9, 30),
+    createdAt: new Date(),
   },
   {
     id: 'TKT-003',
@@ -29,7 +30,8 @@ export const mockTickets: Ticket[] = [
     link: 'https://github.com/org/repo/issues/101',
     aiToolsUsed: ['ChatGPT'],
     status: 'Resolved',
-    createdAt: new Date(2023, 10, 27, 15, 0),
+    createdAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    shiftId: 'SH-1',
   },
   {
     id: 'TKT-004',
@@ -37,7 +39,7 @@ export const mockTickets: Ticket[] = [
     description: 'Password reset link not working. User is locked out.',
     category: ['Account Issue'],
     status: 'Open',
-    createdAt: new Date(2023, 10, 28, 11, 0),
+    createdAt: new Date(),
   },
   {
     id: 'TKT-005',
@@ -45,7 +47,8 @@ export const mockTickets: Ticket[] = [
     description: 'The issue with the login server has been identified and a patch is being deployed.',
     category: ['Technical Issue'],
     status: 'In Progress',
-    createdAt: new Date(2023, 10, 28, 14, 20),
+    createdAt: new Date(),
+    shiftId: 'SH-2',
   },
   {
     id: 'TKT-006',
@@ -55,7 +58,8 @@ export const mockTickets: Ticket[] = [
     agentResponse: 'Optimized the database query and increased the timeout limit. Export is now successful.',
     aiToolsUsed: ['Perplexity'],
     status: 'Closed',
-    createdAt: new Date(2023, 10, 26, 18, 0),
+    createdAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    shiftId: 'SH-1',
   },
   {
     id: 'TKT-007',
@@ -65,7 +69,8 @@ export const mockTickets: Ticket[] = [
     agentResponse: 'Fixed the CSS for mobile viewports. The menu is now responsive.',
     link: 'https://github.com/org/repo/pull/243',
     status: 'Resolved',
-    createdAt: new Date(2023, 10, 28, 13, 0),
+    createdAt: new Date(new Date().setDate(new Date().getDate() - 1)),
+    shiftId: 'SH-1',
   },
 ];
 
@@ -82,8 +87,8 @@ activeStartedAt.setHours(activeStartedAt.getHours() - 1);
 
 
 export const mockShifts: Shift[] = [
-    { id: 'SH-1', name: 'Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed', startedAt: completedStartedAt, endedAt: completedEndedAt },
-    { id: 'SH-2', name: 'Evening Shift', startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
-    { id: 'SH-3', name: 'Night Shift', startTime: '00:00', status: 'Pending' },
+    { id: 'SH-1', name: 'Yesterday Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed', startedAt: completedStartedAt, endedAt: completedEndedAt },
+    { id: 'SH-2', name: 'Today Evening Shift', startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
+    { id: 'SH-3', name: 'Tomorrow Night Shift', startTime: '00:00', status: 'Pending' },
     { id: 'SH-4', name: 'Weekend On-Call', startTime: '10:00', status: 'Pending' },
 ];

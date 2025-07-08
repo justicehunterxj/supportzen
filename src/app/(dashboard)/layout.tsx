@@ -47,7 +47,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: LayoutGrid },
     { href: '/tickets', label: 'Tickets', icon: Ticket },
-    { href: '/shifts', label: 'Shifts', icon: Clock },
+    { href: '/shifts', label: 'Shift Management', icon: Clock },
     { href: '/analytics', label: 'Analytics', icon: BarChart2 },
     { href: '/earnings', label: 'Earnings', icon: DollarSign },
   ];
@@ -115,7 +115,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      <ShiftProvider>
         <SidebarInset>
           <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
               <SidebarTrigger className="md:hidden"/>
@@ -134,7 +133,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </header>
           <main className="flex-1 p-4 sm:p-6">{children}</main>
         </SidebarInset>
-      </ShiftProvider>
     </SidebarProvider>
   );
 }
@@ -146,9 +144,11 @@ export default function DashboardLayout({
 }) {
   return (
     <SettingsProvider>
-      <TicketProvider>
-          <DashboardLayoutContent>{children}</DashboardLayoutContent>
-      </TicketProvider>
+      <ShiftProvider>
+        <TicketProvider>
+            <DashboardLayoutContent>{children}</DashboardLayoutContent>
+        </TicketProvider>
+      </ShiftProvider>
     </SettingsProvider>
   )
 }

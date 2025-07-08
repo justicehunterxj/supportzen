@@ -14,6 +14,7 @@ export type Ticket = {
   aiToolsUsed?: AITool[];
   status: TicketStatus;
   createdAt: Date;
+  shiftId?: string;
 };
 
 export type Shift = {

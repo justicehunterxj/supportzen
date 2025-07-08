@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { mockTickets } from '@/lib/mock-data';
 import type { Ticket } from '@/lib/types';
+import { useShifts } from './shift-context';
 
 interface TicketContextType {
     tickets: Ticket[];
@@ -16,12 +17,14 @@ const TicketContext = React.createContext<TicketContextType | undefined>(undefin
 
 export function TicketProvider({ children }: { children: React.ReactNode }) {
     const [tickets, setTickets] = React.useState<Ticket[]>(mockTickets);
+    const { activeShift } = useShifts();
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt'>) => {
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'shiftId'>) => {
         const newTicket: Ticket = {
             ...ticketData,
             id: `TKT-${String(tickets.length + 1).padStart(3, '0')}`,
             createdAt: new Date(),
+            shiftId: activeShift?.id,
         };
         setTickets(prevTickets => [newTicket, ...prevTickets]);
     };
