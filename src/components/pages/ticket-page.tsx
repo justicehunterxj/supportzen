@@ -26,20 +26,26 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { useShifts } from '@/contexts/shift-context';
+import { useSettings } from '@/contexts/settings-context';
 
 export function TicketPage() {
   const { tickets, addTicket, updateTicket, deleteTicket } = useTickets();
   const { activeShift } = useShifts();
+  const { ticketDisplayLimit } = useSettings();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const [ticketToDelete, setTicketToDelete] = React.useState<string | null>(null);
   const { toast } = useToast();
 
-  let runningTicketsCount = 0;
-  if (activeShift) {
-    runningTicketsCount = tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
-  }
+  const runningTicketsCount = React.useMemo(() => {
+    if (!activeShift) return 0;
+    return tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
+  }, [tickets, activeShift]);
+  
+  const displayTickets = React.useMemo(() => {
+    return ticketDisplayLimit === -1 ? tickets : tickets.slice(0, ticketDisplayLimit);
+  }, [tickets, ticketDisplayLimit]);
 
   const handleAddTicket = () => {
     setSelectedTicket(null);
@@ -88,15 +94,18 @@ export function TicketPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end gap-4">
-        <div className="mr-auto">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
           {activeShift && (
             <p className="text-sm text-muted-foreground">
               Tickets this shift: <span className="font-semibold text-foreground">{runningTicketsCount}</span>
             </p>
           )}
+           <p className="text-sm text-muted-foreground">
+            {`Showing ${displayTickets.length} of ${tickets.length} tickets`}
+          </p>
         </div>
-        <Button onClick={handleAddTicket} className="gap-2">
+        <Button onClick={handleAddTicket} className="gap-2 flex-shrink-0">
           <PlusCircle className="h-4 w-4" />
           Add New Ticket
         </Button>
@@ -114,7 +123,7 @@ export function TicketPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tickets.map((ticket) => (
+            {displayTickets.map((ticket) => (
               <TableRow key={ticket.id}>
                 <TableCell className="font-medium">{ticket.id}</TableCell>
                 <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
@@ -145,6 +154,13 @@ export function TicketPage() {
                 </TableCell>
               </TableRow>
             ))}
+             {displayTickets.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No tickets found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

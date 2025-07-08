@@ -87,7 +87,12 @@ export default function DashboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Tickets</CardTitle>
-          <CardDescription>A quick look at the latest support tickets.</CardDescription>
+          <CardDescription>
+            {ticketDisplayLimit === -1 
+              ? `Showing all ${tickets.length} tickets.`
+              : `Showing the latest ${recentTickets.length} of ${tickets.length} tickets.`
+            }
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>

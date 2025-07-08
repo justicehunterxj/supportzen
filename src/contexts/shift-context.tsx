@@ -76,7 +76,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
             const endedShifts = prevShifts.map(s => 
                 s.status === 'Active' ? { ...s, status: 'Completed' as const, endedAt: new Date() } : s
             );
-            return [newShift, ...endedShifts];
+            return [newShift, ...endedShifts.filter(s => s.id !== newShift.id)];
         });
 
         toast({
