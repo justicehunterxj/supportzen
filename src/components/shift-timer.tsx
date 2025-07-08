@@ -7,17 +7,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useShifts } from '@/contexts/shift-context';
 import { ShiftDialog } from '@/components/shift-dialog';
 import type { Shift } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 import { useSettings } from '@/contexts/settings-context';
 import { format } from 'date-fns';
 
 export function ShiftTimer() {
-    const { shifts, activeShift, startShift, endActiveShift } = useShifts();
+    const { activeShift, createAndStartShift, endActiveShift } = useShifts();
     const { timeFormat } = useSettings();
     const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-    const [shiftToStart, setShiftToStart] = React.useState<Shift | null>(null);
-    const { toast } = useToast();
 
     React.useEffect(() => {
         if (!activeShift || !activeShift.startedAt) {
@@ -25,7 +22,7 @@ export function ShiftTimer() {
             return;
         }
 
-        const startTime = new Date(activeShift.startedAt);
+        const startTime = activeShift.startedAt;
 
         const intervalId = setInterval(() => {
             const now = new Date();
@@ -47,24 +44,12 @@ export function ShiftTimer() {
     }, [activeShift, activeShift?.startedAt]);
     
     const handleStartClick = () => {
-        const nextPendingShift = shifts.find(s => s.status === 'Pending');
-        if (nextPendingShift) {
-            setShiftToStart(nextPendingShift);
-            setIsDialogOpen(true);
-        } else {
-            toast({
-                variant: "destructive",
-                title: "No Pending Shifts",
-                description: "There are no pending shifts to start.",
-            });
-        }
+        setIsDialogOpen(true);
     };
     
     const handleSaveAndStartShift = (shiftData: Shift) => {
-        if (shiftToStart) {
-            const updatedShift = { ...shiftData, id: shiftToStart.id };
-            startShift(updatedShift);
-        }
+        const { name, startTime } = shiftData;
+        createAndStartShift({ name, startTime });
     };
 
     const formatTime = (timeString: string) => {
@@ -116,7 +101,7 @@ export function ShiftTimer() {
                             <div className="space-y-2">
                                 <p className="text-sm text-muted-foreground">No shift is currently active.</p>
                                  <Button onClick={handleStartClick} className="w-full gap-2">
-                                    <Play className="h-4 w-4" /> Start Next Shift
+                                    <Play className="h-4 w-4" /> Start Shift
                                 </Button>
                             </div>
                         )}
@@ -126,7 +111,7 @@ export function ShiftTimer() {
             <ShiftDialog
                 isOpen={isDialogOpen}
                 setIsOpen={setIsDialogOpen}
-                shift={shiftToStart}
+                shift={null}
                 onSave={handleSaveAndStartShift}
                 isStartingShift={true}
             />

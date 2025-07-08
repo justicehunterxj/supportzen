@@ -9,7 +9,7 @@ interface ShiftContextType {
     shifts: Shift[];
     setShifts: React.Dispatch<React.SetStateAction<Shift[]>>;
     activeShift: Shift | undefined;
-    startShift: (shiftToStart: Shift) => void;
+    createAndStartShift: (shiftData: Omit<Shift, 'id' | 'status' | 'startedAt' | 'endedAt'>) => void;
     endActiveShift: () => void;
 }
 
@@ -52,21 +52,27 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     }, [shifts, isLoaded]);
 
     const activeShift = React.useMemo(() => shifts.find(s => s.status === 'Active'), [shifts]);
+    
+    const createAndStartShift = (shiftData: Omit<Shift, 'id' | 'status' | 'startedAt' | 'endedAt'>) => {
+        setShifts(prevShifts => {
+            const updatedShifts = prevShifts.map(s => {
+                if (s.status === 'Active') {
+                    return { ...s, status: 'Completed' as const, endedAt: new Date() };
+                }
+                return s;
+            });
+            const newShift: Shift = {
+                ...shiftData,
+                id: `SH-${Date.now()}`,
+                status: 'Active',
+                startedAt: new Date(),
+            };
+            return [...updatedShifts, newShift];
+        });
 
-    const startShift = (shiftToStart: Shift) => {
-        setShifts(prevShifts => prevShifts.map(s => {
-            if (s.id === shiftToStart.id) {
-                return { ...shiftToStart, status: 'Active', startedAt: new Date(), endedAt: undefined };
-            }
-            if (s.status === 'Active') {
-                return { ...s, status: 'Completed', endedAt: new Date() };
-            }
-            return s;
-        }));
-        
         toast({
             title: "Shift Started",
-            description: `Shift "${shiftToStart.name}" is now active.`,
+            description: `Shift "${shiftData.name}" is now active.`,
         });
     };
     
@@ -81,7 +87,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, startShift, endActiveShift }}>
+        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, createAndStartShift, endActiveShift }}>
             {children}
         </ShiftContext.Provider>
     );
