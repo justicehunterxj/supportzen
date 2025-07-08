@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -55,8 +56,9 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogPro
     if (shift) {
       form.reset(shift);
     } else {
+      const defaultShiftName = format(new Date(), "MMMM d, yyyy (EEEE) 'Shift'");
       form.reset({
-        name: '',
+        name: defaultShiftName,
         startTime: '',
         endTime: '',
         assigned: '',
