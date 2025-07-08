@@ -94,8 +94,8 @@ dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
 
 
 export const mockShifts: Shift[] = [
-    { id: 'SH-1', name: 'Yesterday Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed', startedAt: completedStartedAt, endedAt: completedEndedAt },
-    { id: 'SH-2', name: `${format(new Date(), 'MMMM d, yyyy (EEEE)')} Evening Shift`, startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
-    { id: 'SH-3', name: `${format(tomorrow, 'MMMM d, yyyy (EEEE)')} Night Shift`, startTime: '00:00', status: 'Pending' },
-    { id: 'SH-4', name: `${format(dayAfterTomorrow, 'MMMM d, yyyy (EEEE)')} On-Call`, startTime: '10:00', status: 'Pending' },
+    { id: 'SH-1', name: format(yesterday, 'MMMM d, yyyy (EEEE)'), startTime: '08:00', endTime: '16:00', status: 'Completed', startedAt: completedStartedAt, endedAt: completedEndedAt },
+    { id: 'SH-2', name: format(new Date(), 'MMMM d, yyyy (EEEE)'), startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
+    { id: 'SH-3', name: format(tomorrow, 'MMMM d, yyyy (EEEE)'), startTime: '00:00', status: 'Pending' },
+    { id: 'SH-4', name: format(dayAfterTomorrow, 'MMMM d, yyyy (EEEE)'), startTime: '10:00', status: 'Pending' },
 ];

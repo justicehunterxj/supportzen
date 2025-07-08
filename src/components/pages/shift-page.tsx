@@ -122,7 +122,12 @@ export function ShiftPage() {
   }
 
   const completedShifts = shifts.filter(s => s.status === 'Completed').sort((a,b) => (b.endedAt?.getTime() || 0) - (a.endedAt?.getTime() || 0));
-  const otherShifts = shifts.filter(s => s.status !== 'Completed');
+  
+  const activeShift = shifts.find(s => s.status === 'Active');
+  const nextPendingShift = shifts.find(s => s.status === 'Pending');
+
+  const otherShifts = activeShift ? [activeShift] : (nextPendingShift ? [nextPendingShift] : []);
+
 
   return (
     <div className="space-y-4">
@@ -197,7 +202,7 @@ export function ShiftPage() {
       {otherShifts.length > 0 && (
         <Card>
             <CardHeader>
-                <CardTitle>Upcoming & Active Shifts</CardTitle>
+                <CardTitle>Active Shift</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>
