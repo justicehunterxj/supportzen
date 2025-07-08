@@ -50,10 +50,10 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
             // Auto-close tickets based on status and age
             const now = new Date();
             const autoClosedTickets = processedTickets.map(ticket => {
-                if (ticket.status === 'Open' && differenceInDays(now, ticket.createdAt) >= 3) {
+                if (ticket.status === 'Open' && differenceInDays(now, new Date(ticket.createdAt)) >= 3) {
                     return { ...ticket, status: 'Closed' as const, updatedAt: now };
                 }
-                if (ticket.status === 'In Progress' && differenceInDays(now, ticket.updatedAt) >= 3) {
+                if (ticket.status === 'In Progress' && differenceInDays(now, new Date(ticket.updatedAt)) >= 3) {
                     return { ...ticket, status: 'Closed' as const, updatedAt: now };
                 }
                 return ticket;

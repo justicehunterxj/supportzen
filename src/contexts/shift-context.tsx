@@ -9,7 +9,6 @@ interface ShiftContextType {
     shifts: Shift[];
     setShifts: React.Dispatch<React.SetStateAction<Shift[]>>;
     activeShift: Shift | undefined;
-    startShift: (shiftToStart: Shift) => void;
     startNewShift: (newShiftData: Pick<Shift, 'name' | 'startTime'>) => void;
     endActiveShift: () => void;
 }
@@ -65,23 +64,6 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
 
     const activeShift = React.useMemo(() => shifts.find(s => s.status === 'Active'), [shifts]);
 
-    const startShift = (shiftToStart: Shift) => {
-        setShifts(prevShifts => prevShifts.map(s => {
-            if (s.id === shiftToStart.id) {
-                return { ...shiftToStart, status: 'Active', startedAt: new Date(), endedAt: undefined };
-            }
-            if (s.status === 'Active') {
-                return { ...s, status: 'Completed', endedAt: new Date() };
-            }
-            return s;
-        }));
-        
-        toast({
-            title: "Shift Started",
-            description: `Shift "${shiftToStart.name}" is now active.`,
-        });
-    };
-
     const startNewShift = (newShiftData: Pick<Shift, 'name' | 'startTime'>) => {
         const newShift: Shift = {
             ...newShiftData,
@@ -114,7 +96,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, startShift, startNewShift, endActiveShift }}>
+        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, startNewShift, endActiveShift }}>
             {children}
         </ShiftContext.Provider>
     );
