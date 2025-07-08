@@ -15,10 +15,12 @@ export default function DashboardPage() {
   const { tickets } = useTickets();
   const { ticketDisplayLimit } = useSettings();
   const [currentPage, setCurrentPage] = React.useState(1);
+  
+  const activeTickets = React.useMemo(() => tickets.filter(t => !t.isArchived), [tickets]);
 
-  const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-  const resolvedToday = tickets.filter(t => t.status === 'Resolved' && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
-  const totalTickets = tickets.length;
+  const openTickets = activeTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+  const resolvedToday = activeTickets.filter(t => t.status === 'Resolved' && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
+  const totalTickets = activeTickets.length;
   const totalEarnings = (tickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length * 1.33).toFixed(2);
 
   const avgResponseTime = React.useMemo(() => {
@@ -77,18 +79,18 @@ export default function DashboardPage() {
   ];
   
   const totalPages = React.useMemo(() => {
-    if (ticketDisplayLimit === -1 || tickets.length === 0) return 1;
-    return Math.ceil(tickets.length / ticketDisplayLimit);
-  }, [tickets.length, ticketDisplayLimit]);
+    if (ticketDisplayLimit === -1 || activeTickets.length === 0) return 1;
+    return Math.ceil(activeTickets.length / ticketDisplayLimit);
+  }, [activeTickets.length, ticketDisplayLimit]);
 
   const recentTickets = React.useMemo(() => {
     if (ticketDisplayLimit === -1) {
-      return tickets;
+      return activeTickets;
     }
     const startIndex = (currentPage - 1) * ticketDisplayLimit;
     const endIndex = startIndex + ticketDisplayLimit;
-    return tickets.slice(startIndex, endIndex);
-  }, [tickets, currentPage, ticketDisplayLimit]);
+    return activeTickets.slice(startIndex, endIndex);
+  }, [activeTickets, currentPage, ticketDisplayLimit]);
 
   React.useEffect(() => {
     if (currentPage > totalPages) {
@@ -97,7 +99,7 @@ export default function DashboardPage() {
   }, [currentPage, totalPages]);
   
   const startIndex = (currentPage - 1) * ticketDisplayLimit;
-  const endIndex = Math.min(startIndex + ticketDisplayLimit, tickets.length);
+  const endIndex = Math.min(startIndex + ticketDisplayLimit, activeTickets.length);
 
   return (
     <div className="flex flex-col gap-6">
@@ -112,8 +114,8 @@ export default function DashboardPage() {
           <CardTitle>Recent Tickets</CardTitle>
           <CardDescription>
             {ticketDisplayLimit === -1 
-              ? `Showing all ${tickets.length} tickets.`
-              : `Showing ${recentTickets.length} of ${tickets.length} tickets.`
+              ? `Showing all ${activeTickets.length} tickets.`
+              : `Showing ${recentTickets.length} of ${activeTickets.length} tickets.`
             }
           </CardDescription>
         </CardHeader>
@@ -151,7 +153,7 @@ export default function DashboardPage() {
             </TableBody>
           </Table>
         </CardContent>
-        {ticketDisplayLimit !== -1 && tickets.length > ticketDisplayLimit && (
+        {ticketDisplayLimit !== -1 && activeTickets.length > ticketDisplayLimit && (
           <CardFooter>
             <div className="flex w-full items-center justify-between">
               <span className="text-sm text-muted-foreground">

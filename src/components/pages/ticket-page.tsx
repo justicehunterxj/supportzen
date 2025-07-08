@@ -39,24 +39,26 @@ export function TicketPage() {
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = React.useState(1);
 
+  const activeTickets = React.useMemo(() => tickets.filter(t => !t.isArchived), [tickets]);
+
   const runningTicketsCount = React.useMemo(() => {
     if (!activeShift) return 0;
-    return tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
-  }, [tickets, activeShift]);
+    return activeTickets.filter(ticket => ticket.shiftId === activeShift.id).length;
+  }, [activeTickets, activeShift]);
   
   const totalPages = React.useMemo(() => {
-    if (ticketDisplayLimit === -1 || tickets.length === 0) return 1;
-    return Math.ceil(tickets.length / ticketDisplayLimit);
-  }, [tickets.length, ticketDisplayLimit]);
+    if (ticketDisplayLimit === -1 || activeTickets.length === 0) return 1;
+    return Math.ceil(activeTickets.length / ticketDisplayLimit);
+  }, [activeTickets.length, ticketDisplayLimit]);
 
   const displayTickets = React.useMemo(() => {
     if (ticketDisplayLimit === -1) {
-      return tickets;
+      return activeTickets;
     }
     const startIndex = (currentPage - 1) * ticketDisplayLimit;
     const endIndex = startIndex + ticketDisplayLimit;
-    return tickets.slice(startIndex, endIndex);
-  }, [tickets, currentPage, ticketDisplayLimit]);
+    return activeTickets.slice(startIndex, endIndex);
+  }, [activeTickets, currentPage, ticketDisplayLimit]);
 
   React.useEffect(() => {
     if (currentPage > totalPages) {
@@ -65,7 +67,7 @@ export function TicketPage() {
   }, [currentPage, totalPages]);
   
   const startIndex = (currentPage - 1) * ticketDisplayLimit;
-  const startRange = tickets.length > 0 ? startIndex + 1 : 0;
+  const startRange = activeTickets.length > 0 ? startIndex + 1 : 0;
   const endRange = startIndex + displayTickets.length;
 
   const handleAddTicket = () => {
@@ -124,8 +126,8 @@ export function TicketPage() {
           )}
            <p className="text-sm text-muted-foreground">
             {ticketDisplayLimit === -1 
-              ? `Showing all ${tickets.length} tickets`
-              : `Showing tickets ${startRange} to ${endRange} of ${tickets.length}`
+              ? `Showing all ${activeTickets.length} tickets`
+              : `Showing tickets ${startRange} to ${endRange} of ${activeTickets.length}`
             }
           </p>
         </div>
@@ -188,7 +190,7 @@ export function TicketPage() {
           </TableBody>
         </Table>
       </div>
-       {ticketDisplayLimit !== -1 && tickets.length > ticketDisplayLimit && (
+       {ticketDisplayLimit !== -1 && activeTickets.length > ticketDisplayLimit && (
         <div className="flex w-full items-center justify-end gap-2">
             <span className="mr-auto text-sm text-muted-foreground">
                 Page {currentPage} of {totalPages}

@@ -9,7 +9,7 @@ import { useShifts } from './shift-context';
 interface TicketContextType {
     tickets: Ticket[];
     setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => void;
+    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => void;
     updateTicket: (ticket: Ticket) => void;
     deleteTicket: (ticketId: string) => void;
 }
@@ -41,10 +41,11 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                 processedTickets = JSON.parse(storedTickets).map((t: any) => ({
                     ...t,
                     createdAt: new Date(t.createdAt),
-                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt)
+                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
+                    isArchived: t.isArchived || false,
                 }));
             } else {
-                processedTickets = mockTickets;
+                processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
             }
 
             // Auto-close tickets based on status and age
@@ -79,7 +80,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [tickets, isLoaded]);
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'shiftId'>) => {
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'shiftId' | 'isArchived'>) => {
         const now = new Date();
         const newTicket: Ticket = {
             ...ticketData,
@@ -87,6 +88,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
             createdAt: now,
             updatedAt: now,
             shiftId: activeShift?.id,
+            isArchived: false,
         };
         setTickets(prevTickets => [newTicket, ...prevTickets]);
     };

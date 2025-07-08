@@ -172,6 +172,7 @@ export default function SettingsPage() {
                             category: mappedCategory,
                             createdAt: new Date(t.createdAt),
                             updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
+                            isArchived: t.isArchived || false,
                         };
                     });
                     setTickets(parsedTickets);

@@ -17,6 +17,7 @@ export const mockTickets: Ticket[] = [
     createdAt: now,
     updatedAt: now,
     shiftId: 'SH-2',
+    isArchived: false,
   },
   {
     id: 'TKT-002',
@@ -26,6 +27,7 @@ export const mockTickets: Ticket[] = [
     status: 'Open',
     createdAt: now,
     updatedAt: now,
+    isArchived: false,
   },
   {
     id: 'TKT-003',
@@ -39,6 +41,7 @@ export const mockTickets: Ticket[] = [
     createdAt: yesterday,
     updatedAt: yesterday,
     shiftId: 'SH-1',
+    isArchived: true,
   },
   {
     id: 'TKT-004',
@@ -48,6 +51,7 @@ export const mockTickets: Ticket[] = [
     status: 'Open',
     createdAt: now,
     updatedAt: now,
+    isArchived: false,
   },
   {
     id: 'TKT-005',
@@ -58,6 +62,7 @@ export const mockTickets: Ticket[] = [
     createdAt: now,
     updatedAt: now,
     shiftId: 'SH-2',
+    isArchived: false,
   },
   {
     id: 'TKT-006',
@@ -70,6 +75,7 @@ export const mockTickets: Ticket[] = [
     createdAt: yesterday,
     updatedAt: yesterday,
     shiftId: 'SH-1',
+    isArchived: true,
   },
   {
     id: 'TKT-007',
@@ -82,6 +88,7 @@ export const mockTickets: Ticket[] = [
     createdAt: yesterday,
     updatedAt: yesterday,
     shiftId: 'SH-1',
+    isArchived: true,
   },
 ];
 

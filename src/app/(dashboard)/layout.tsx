@@ -22,6 +22,7 @@ import {
   Users,
   Settings,
   HelpCircle,
+  History,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -48,6 +49,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     { href: '/', label: 'Dashboard', icon: LayoutGrid },
     { href: '/tickets', label: 'Tickets', icon: Ticket },
     { href: '/shifts', label: 'Shift Management', icon: Clock },
+    { href: '/history', label: 'History', icon: History },
     { href: '/analytics', label: 'Analytics', icon: BarChart2 },
     { href: '/earnings', label: 'Earnings', icon: DollarSign },
   ];
