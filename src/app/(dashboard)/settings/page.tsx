@@ -39,20 +39,38 @@ export default function SettingsPage() {
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [isClearAlertOpen, setIsClearAlertOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
+    const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
         setMounted(true);
     }, []);
 
-    const handleAvatarChange = () => {
-        // Simple avatar change by cycling through a few pravatar images
-        const newId = Math.random().toString(36).substring(7);
-        const newUrl = `https://i.pravatar.cc/150?u=${newId}`;
-        setAvatarUrl(newUrl);
-        toast({
-            title: "Avatar Updated",
-            description: "Your profile picture has been changed.",
-        });
+    const handleAvatarButtonClick = () => {
+        avatarFileInputRef.current?.click();
+    };
+
+    const handleAvatarFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setAvatarUrl(e.target?.result as string);
+                toast({
+                    title: 'Avatar Updated',
+                    description: 'Your profile picture has been changed.',
+                });
+            };
+            reader.readAsDataURL(file);
+        } else if (file) {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid File Type',
+                description: 'Please select an image file (e.g., PNG, JPG).',
+            });
+        }
+        if(event.target) {
+            event.target.value = "";
+        }
     };
     
     const handleExport = () => {
@@ -277,7 +295,14 @@ export default function SettingsPage() {
                         <AvatarImage src={avatarUrl} alt="Admin" />
                         <AvatarFallback>AD</AvatarFallback>
                     </Avatar>
-                    <Button onClick={handleAvatarChange}>Change Picture</Button>
+                    <Button onClick={handleAvatarButtonClick}>Change Picture</Button>
+                    <Input
+                        type="file"
+                        ref={avatarFileInputRef}
+                        onChange={handleAvatarFileChange}
+                        className="hidden"
+                        accept="image/*"
+                    />
                 </CardContent>
             </Card>
 
