@@ -2,6 +2,47 @@
 
 Welcome to SupportZen, a comprehensive ticketing dashboard designed for customer technical support. This application is built with Next.js, ShadCN UI, and Genkit to provide a modern, feature-rich, and AI-enhanced experience for managing support operations.
 
+## Running Locally
+
+To run this project on your local machine, you'll need Node.js and npm installed. Follow these steps:
+
+### 1. Set Up Environment Variables
+
+The AI-powered features in this dashboard use Google's Gemini model via Genkit. You'll need a Google AI API key to use them.
+
+1.  Create a `.env.local` file in the root of the project.
+2.  Add your API key to the file like this:
+    ```
+    GOOGLE_API_KEY="YOUR_API_KEY_HERE"
+    ```
+    You can get a free API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+
+### 2. Install Dependencies
+
+Open your terminal, navigate to the project directory, and run the following command to install all the necessary packages:
+
+```bash
+npm install
+```
+
+### 3. Run the Development Servers
+
+This project requires two separate development servers to run concurrently: one for the Next.js frontend and one for the Genkit AI flows.
+
+1.  **In your first terminal**, run the Next.js development server:
+    ```bash
+    npm run dev
+    ```
+    Your application will be available at `http://localhost:9002`.
+
+2.  **Open a second terminal** and run the Genkit development server:
+    ```bash
+    npm run genkit:dev
+    ```
+    This will start the Genkit flows and make them available to your Next.js application.
+
+Now you can access the dashboard in your browser and all features, including the AI-powered status suggestions, should be fully functional.
+
 ## Features
 
 ### 1. Main Dashboard
