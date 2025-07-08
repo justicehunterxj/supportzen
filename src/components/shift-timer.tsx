@@ -22,7 +22,7 @@ export function ShiftTimer() {
             return;
         }
 
-        const startTime = activeShift.startedAt;
+        const startTime = new Date(activeShift.startedAt);
 
         const intervalId = setInterval(() => {
             const now = new Date();
@@ -41,7 +41,7 @@ export function ShiftTimer() {
         }, 1000);
 
         return () => clearInterval(intervalId);
-    }, [activeShift, activeShift?.startedAt]);
+    }, [activeShift?.startedAt]);
     
     const handleStartClick = () => {
         setIsDialogOpen(true);
@@ -52,20 +52,9 @@ export function ShiftTimer() {
         createAndStartShift({ name, startTime });
     };
 
-    const formatTime = (timeString: string) => {
-        if (!timeString) return '';
-        const [hours, minutes] = timeString.split(':');
-        const date = new Date();
-        date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-        return format(date, timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
-    }
-    
     const getFormattedStartTime = () => {
-        if (!activeShift) return '';
-        if (activeShift.startedAt) {
-            return format(new Date(activeShift.startedAt), timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
-        }
-        return formatTime(activeShift.startTime);
+        if (!activeShift || !activeShift.startedAt) return '';
+        return format(new Date(activeShift.startedAt), timeFormat === '12h' ? 'h:mm a' : 'HH:mm');
     }
 
     return (
@@ -111,7 +100,7 @@ export function ShiftTimer() {
             <ShiftDialog
                 isOpen={isDialogOpen}
                 setIsOpen={setIsDialogOpen}
-                shift={null}
+                shift={null} 
                 onSave={handleSaveAndStartShift}
                 isStartingShift={true}
             />

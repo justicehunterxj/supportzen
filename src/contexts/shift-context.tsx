@@ -55,18 +55,25 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     
     const createAndStartShift = (shiftData: Omit<Shift, 'id' | 'status' | 'startedAt' | 'endedAt'>) => {
         setShifts(prevShifts => {
+            // End any currently active shift before starting a new one
             const updatedShifts = prevShifts.map(s => {
                 if (s.status === 'Active') {
+                    toast({
+                        title: "Previous Shift Ended",
+                        description: `Shift "${s.name}" was automatically completed.`,
+                    });
                     return { ...s, status: 'Completed' as const, endedAt: new Date() };
                 }
                 return s;
             });
+
             const newShift: Shift = {
                 ...shiftData,
                 id: `SH-${Date.now()}`,
                 status: 'Active',
                 startedAt: new Date(),
             };
+            
             return [...updatedShifts, newShift];
         });
 

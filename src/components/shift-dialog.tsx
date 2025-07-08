@@ -52,7 +52,7 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave, isStartingShift 
   React.useEffect(() => {
     if (!isOpen) return;
 
-    if (isStartingShift && shift) {
+    if (isStartingShift) {
       const now = new Date();
       const defaultShiftName = format(now, "MMMM d, yyyy (EEEE) 'Shift at' h:mm a");
       const defaultStartTime = format(now, 'HH:mm');
