@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { useShifts } from '@/contexts/shift-context';
 import { Download, Upload, Sun, Moon, Monitor } from 'lucide-react';
-import type { Ticket, Shift } from '@/lib/types';
+import type { Ticket, Shift, TicketCategory } from '@/lib/types';
 import type { TimeFormat } from '@/contexts/settings-context';
 
 
@@ -89,6 +89,7 @@ export default function SettingsPage() {
                     throw new Error("File could not be read");
                 }
                 const importedData = JSON.parse(text);
+                const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
 
                 // Validate and set data
                 if (importedData.settings) {
@@ -97,7 +98,37 @@ export default function SettingsPage() {
                     if (importedData.settings.avatarUrl) setAvatarUrl(importedData.settings.avatarUrl);
                 }
                 if (Array.isArray(importedData.tickets)) {
-                    const parsedTickets: Ticket[] = importedData.tickets.map((t: any) => ({...t, createdAt: new Date(t.createdAt)}));
+                    const parsedTickets: Ticket[] = importedData.tickets.map((t: any) => {
+                        const agentResponse = t.agentResponse || t.response;
+                        
+                        let mappedCategory: TicketCategory[];
+                        if (typeof t.category === 'string') {
+                            if (t.category === 'Support') {
+                                mappedCategory = ['General Query'];
+                            } else if ((ticketCategories as string[]).includes(t.category)) {
+                                mappedCategory = [t.category as TicketCategory];
+                            } else {
+                                mappedCategory = ['Others'];
+                            }
+                        } else if (Array.isArray(t.category)) {
+                            mappedCategory = t.category.filter((c: any) => (ticketCategories as string[]).includes(c));
+                            if (mappedCategory.length === 0) {
+                                mappedCategory = ['Others'];
+                            }
+                        } else {
+                            mappedCategory = ['Others'];
+                        }
+
+                        // Remove original response and category to avoid conflicts if they exist
+                        const { response, category, ...restOfTicket } = t;
+
+                        return {
+                            ...restOfTicket,
+                            agentResponse,
+                            category: mappedCategory,
+                            createdAt: new Date(t.createdAt),
+                        };
+                    });
                     setTickets(parsedTickets);
                 }
                 if (Array.isArray(importedData.shifts)) {
