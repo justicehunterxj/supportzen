@@ -1,12 +1,14 @@
 export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
 export type AITool = 'ChatGPT' | 'Gemini' | 'Claude' | 'Copilot' | 'Perplexity';
 export type ShiftStatus = 'Pending' | 'Active' | 'Completed';
+export type TicketCategory = 'Account Issue' | 'Billing & Payments' | 'Technical Issue' | 'Feedback' | 'General Query' | 'Others';
 
 
 export type Ticket = {
   id: string;
   title: string;
   description: string;
+  category: TicketCategory;
   agentResponse?: string;
   link?: string;
   aiToolsUsed?: AITool[];

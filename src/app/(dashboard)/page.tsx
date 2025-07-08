@@ -45,6 +45,7 @@ export default function DashboardPage() {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Title</TableHead>
+                <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Created</TableHead>
               </TableRow>
@@ -54,6 +55,7 @@ export default function DashboardPage() {
                 <TableRow key={ticket.id}>
                   <TableCell className="font-medium">{ticket.id}</TableCell>
                   <TableCell className="max-w-xs truncate">{ticket.title}</TableCell>
+                  <TableCell>{ticket.category}</TableCell>
                   <TableCell>
                     <StatusBadge status={ticket.status} />
                   </TableCell>

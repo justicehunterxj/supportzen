@@ -93,6 +93,7 @@ export function TicketPage() {
             <TableRow>
               <TableHead>ID</TableHead>
               <TableHead>Title</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -103,6 +104,7 @@ export function TicketPage() {
               <TableRow key={ticket.id}>
                 <TableCell className="font-medium">{ticket.id}</TableCell>
                 <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
+                <TableCell>{ticket.category}</TableCell>
                 <TableCell>
                   <StatusBadge status={ticket.status} />
                 </TableCell>
@@ -144,7 +146,7 @@ export function TicketPage() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the ticket.
-            </AlertDialogDescription>
+            </AlertDialog-description>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>

@@ -25,16 +25,19 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Wand2, Loader2 } from 'lucide-react';
-import type { Ticket, TicketStatus, AITool } from '@/lib/types';
+import type { Ticket, TicketStatus, AITool, TicketCategory } from '@/lib/types';
 import { suggestStatus } from '@/ai/flows/suggestStatus';
 import { useToast } from '@/hooks/use-toast';
 
 const aiTools: AITool[] = ['ChatGPT', 'Gemini', 'Claude', 'Copilot', 'Perplexity'];
+const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
 
 const ticketSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters long.'),
   description: z.string().min(10, 'Description must be at least 10 characters long.'),
+  category: z.enum(ticketCategories, { required_error: 'You need to select a ticket category.' }),
   agentResponse: z.string().optional(),
   link: z.string().url({ message: "Invalid URL" }).optional().or(z.literal('')),
   aiToolsUsed: z.array(z.enum(aiTools)).optional(),
@@ -63,6 +66,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       link: '',
       aiToolsUsed: [],
       status: 'Open',
+      category: 'General Query',
     },
   });
 
@@ -71,6 +75,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       form.reset({
         title: ticket.title,
         description: ticket.description,
+        category: ticket.category,
         agentResponse: ticket.agentResponse || '',
         link: ticket.link || '',
         aiToolsUsed: ticket.aiToolsUsed || [],
@@ -84,6 +89,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
         link: '',
         aiToolsUsed: [],
         status: 'Open',
+        category: 'General Query',
       });
     }
   }, [ticket, form, isOpen]);
@@ -123,6 +129,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       id: ticket?.id || '',
       title: data.title,
       description: data.description,
+      category: data.category,
       agentResponse: data.agentResponse,
       link: data.link,
       aiToolsUsed: data.aiToolsUsed,
@@ -170,6 +177,34 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Category</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="grid grid-cols-2 gap-x-4 gap-y-2"
+                    >
+                      {ticketCategories.map((category) => (
+                        <FormItem key={category} className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value={category} />
+                          </FormControl>
+                          <FormLabel className="font-normal text-sm">{category}</FormLabel>
+                        </FormItem>
+                      ))}
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="agentResponse"
