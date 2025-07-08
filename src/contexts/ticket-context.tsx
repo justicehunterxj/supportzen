@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { differenceInDays } from 'date-fns';
 import { mockTickets } from '@/lib/mock-data';
-import type { Ticket } from '@/lib/types';
+import type { Ticket, TicketCategory } from '@/lib/types';
 import { useShifts } from './shift-context';
 
 interface TicketContextType {
@@ -38,12 +38,36 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
             let processedTickets: Ticket[];
 
             if (storedTickets) {
-                processedTickets = JSON.parse(storedTickets).map((t: any) => ({
-                    ...t,
-                    createdAt: new Date(t.createdAt),
-                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
-                    isArchived: t.isArchived || false,
-                }));
+                const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
+                
+                processedTickets = JSON.parse(storedTickets).map((t: any) => {
+                    // This is the migration logic
+                    let mappedCategory: TicketCategory[];
+                    if (typeof t.category === 'string') {
+                        if (t.category === 'Support') { // old value
+                            mappedCategory = ['General Query'];
+                        } else if ((ticketCategories as string[]).includes(t.category)) {
+                            mappedCategory = [t.category as TicketCategory];
+                        } else {
+                            mappedCategory = ['Others'];
+                        }
+                    } else if (Array.isArray(t.category)) {
+                        mappedCategory = t.category.filter((c: any) => (ticketCategories as string[]).includes(c));
+                        if (mappedCategory.length === 0) {
+                            mappedCategory = ['Others'];
+                        }
+                    } else {
+                        mappedCategory = ['Others'];
+                    }
+
+                    return {
+                        ...t,
+                        category: mappedCategory,
+                        createdAt: new Date(t.createdAt),
+                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
+                        isArchived: t.isArchived || false,
+                    };
+                });
             } else {
                 processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
             }
