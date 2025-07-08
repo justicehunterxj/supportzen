@@ -1,4 +1,5 @@
 import type { Ticket, Shift } from './types';
+import { format } from 'date-fns';
 
 export const mockTickets: Ticket[] = [
   {
@@ -85,10 +86,16 @@ completedEndedAt.setHours(16, 0, 0, 0);
 const activeStartedAt = new Date();
 activeStartedAt.setHours(activeStartedAt.getHours() - 1);
 
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+const dayAfterTomorrow = new Date();
+dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+
 
 export const mockShifts: Shift[] = [
     { id: 'SH-1', name: 'Yesterday Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed', startedAt: completedStartedAt, endedAt: completedEndedAt },
-    { id: 'SH-2', name: 'Today Evening Shift', startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
-    { id: 'SH-3', name: 'Tomorrow Night Shift', startTime: '00:00', status: 'Pending' },
-    { id: 'SH-4', name: 'Weekend On-Call', startTime: '10:00', status: 'Pending' },
+    { id: 'SH-2', name: `${format(new Date(), 'MMMM d, yyyy (EEEE)')} Evening Shift`, startTime: '16:00', status: 'Active', startedAt: activeStartedAt },
+    { id: 'SH-3', name: `${format(tomorrow, 'MMMM d, yyyy (EEEE)')} Night Shift`, startTime: '00:00', status: 'Pending' },
+    { id: 'SH-4', name: `${format(dayAfterTomorrow, 'MMMM d, yyyy (EEEE)')} On-Call`, startTime: '10:00', status: 'Pending' },
 ];
