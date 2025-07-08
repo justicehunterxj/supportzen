@@ -5,7 +5,6 @@ import { PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ShiftDialog } from '@/components/shift-dialog';
-import { mockShifts } from '@/lib/mock-data';
 import type { Shift } from '@/lib/types';
 import {
   DropdownMenu,
@@ -25,9 +24,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { ShiftStatusBadge } from '@/components/shift-status-badge';
+import { useShifts } from '@/contexts/shift-context';
 
 export function ShiftPage() {
-  const [shifts, setShifts] = React.useState<Shift[]>(mockShifts);
+  const { shifts, setShifts } = useShifts();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedShift, setSelectedShift] = React.useState<Shift | null>(null);

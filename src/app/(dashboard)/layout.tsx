@@ -27,6 +27,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { ShiftProvider } from '@/contexts/shift-context';
+import { ShiftTimer } from '@/components/shift-timer';
 
 const SupportZenIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-primary">
@@ -107,23 +109,26 @@ export default function DashboardLayout({
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-            <SidebarTrigger className="md:hidden"/>
-            <div className="flex-1">
-                {/* Can add breadcrumbs or page title here */}
-            </div>
-            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
-                <Users className="h-4 w-4" />
-                <span className="sr-only">Manage Team</span>
-            </Button>
-            <Avatar className="h-9 w-9 border">
-                <AvatarImage src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="Admin" />
-                <AvatarFallback>AD</AvatarFallback>
-            </Avatar>
-        </header>
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
-      </SidebarInset>
+      <ShiftProvider>
+        <SidebarInset>
+          <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
+              <SidebarTrigger className="md:hidden"/>
+              <div className="flex-1">
+                  {/* Can add breadcrumbs or page title here */}
+              </div>
+              <ShiftTimer />
+              <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
+                  <Users className="h-4 w-4" />
+                  <span className="sr-only">Manage Team</span>
+              </Button>
+              <Avatar className="h-9 w-9 border">
+                  <AvatarImage src="https://i.pravatar.cc/150?u=a04258114e29026702d" alt="Admin" />
+                  <AvatarFallback>AD</AvatarFallback>
+              </Avatar>
+          </header>
+          <main className="flex-1 p-4 sm:p-6">{children}</main>
+        </SidebarInset>
+      </ShiftProvider>
     </SidebarProvider>
   );
 }

@@ -37,9 +37,10 @@ interface ShiftDialogProps {
   setIsOpen: (open: boolean) => void;
   shift: Shift | null;
   onSave: (shift: Shift) => void;
+  isStartingShift?: boolean;
 }
 
-export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogProps) {
+export function ShiftDialog({ isOpen, setIsOpen, shift, onSave, isStartingShift = false }: ShiftDialogProps) {
   const form = useForm<ShiftFormValues>({
     resolver: zodResolver(shiftSchema),
     defaultValues: {
@@ -79,9 +80,9 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogPro
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{shift ? 'Edit Shift' : 'Add New Shift'}</DialogTitle>
+          <DialogTitle>{isStartingShift ? 'Start Shift' : (shift ? 'Edit Shift' : 'Add New Shift')}</DialogTitle>
           <DialogDescription>
-            {shift ? 'Update the details of the existing shift.' : 'Fill in the details for the new shift schedule.'}
+            {isStartingShift ? 'Confirm the details of the shift you are starting.' : (shift ? 'Update the details of the existing shift.' : 'Fill in the details for the new shift schedule.')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -116,7 +117,7 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogPro
               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Shift</Button>
+              <Button type="submit">{isStartingShift ? 'Start Shift' : 'Save Shift'}</Button>
             </DialogFooter>
           </form>
         </Form>
