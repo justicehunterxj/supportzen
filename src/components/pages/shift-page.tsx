@@ -138,6 +138,57 @@ export function ShiftPage() {
         </Button>
       </div>
       
+      {otherShifts.length > 0 && (
+        <Card>
+            <CardHeader>
+                <CardTitle>Active Shift</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Scheduled Start</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {otherShifts.map((shift) => (
+                    <TableRow key={shift.id}>
+                        <TableCell className="font-medium">{shift.name}</TableCell>
+                        <TableCell>{formatTime(shift.startTime)}</TableCell>
+                        <TableCell>
+                        <ShiftStatusBadge status={shift.status} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEditShift(shift)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteClick(shift.id)} className="text-red-600">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+      )}
+
       <Accordion type="single" collapsible className="w-full space-y-4">
         {completedShifts.map((shift) => {
           const shiftTickets = tickets.filter(ticket => ticket.shiftId === shift.id);
@@ -199,58 +250,6 @@ export function ShiftPage() {
         })}
       </Accordion>
       
-      {otherShifts.length > 0 && (
-        <Card>
-            <CardHeader>
-                <CardTitle>Active Shift</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Scheduled Start</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {otherShifts.map((shift) => (
-                    <TableRow key={shift.id}>
-                        <TableCell className="font-medium">{shift.name}</TableCell>
-                        <TableCell>{formatTime(shift.startTime)}</TableCell>
-                        <TableCell>
-                        <ShiftStatusBadge status={shift.status} />
-                        </TableCell>
-                        <TableCell className="text-right">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEditShift(shift)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDeleteClick(shift.id)} className="text-red-600">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                            </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                    ))}
-                </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
-      )}
-
-
       <ShiftDialog
         isOpen={isShiftDialogOpen}
         setIsOpen={setIsShiftDialogOpen}
