@@ -12,6 +12,8 @@ interface SettingsContextType {
   setAvatarUrl: (url: string | null | undefined) => void;
   theme: string | undefined;
   setTheme: (theme: string) => void;
+  ticketDisplayLimit: number;
+  setTicketDisplayLimit: (limit: number) => void;
 }
 
 const SettingsContext = React.createContext<SettingsContextType | undefined>(undefined);
@@ -22,6 +24,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [timeFormat, setTimeFormatState] = React.useState<TimeFormat>('12h');
   const [avatarUrl, setAvatarUrlState] = React.useState<string | undefined>(initialAvatar);
   const { theme, setTheme } = useTheme();
+  const [ticketDisplayLimit, setTicketDisplayLimitState] = React.useState<number>(10);
 
   React.useEffect(() => {
     const storedTimeFormat = localStorage.getItem('timeFormat') as TimeFormat | null;
@@ -30,6 +33,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
     const storedAvatarUrl = localStorage.getItem('avatarUrl');
     setAvatarUrlState(storedAvatarUrl || undefined);
+
+    const storedTicketDisplayLimit = localStorage.getItem('ticketDisplayLimit');
+    if (storedTicketDisplayLimit) {
+      setTicketDisplayLimitState(parseInt(storedTicketDisplayLimit, 10));
+    } else {
+      setTicketDisplayLimitState(10); // Default value
+    }
   }, []);
 
   const setTimeFormat = (format: TimeFormat) => {
@@ -47,8 +57,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setTicketDisplayLimit = (limit: number) => {
+    localStorage.setItem('ticketDisplayLimit', limit.toString());
+    setTicketDisplayLimitState(limit);
+  };
+
   return (
-    <SettingsContext.Provider value={{ timeFormat, setTimeFormat, avatarUrl, setAvatarUrl, theme, setTheme }}>
+    <SettingsContext.Provider value={{ 
+        timeFormat, setTimeFormat, 
+        avatarUrl, setAvatarUrl, 
+        theme, setTheme,
+        ticketDisplayLimit, setTicketDisplayLimit
+    }}>
       {children}
     </SettingsContext.Provider>
   );

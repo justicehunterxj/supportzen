@@ -8,9 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { StatusBadge } from '@/components/status-badge';
 import type { Ticket } from '@/lib/types';
 import { useTickets } from '@/contexts/ticket-context';
+import { useSettings } from '@/contexts/settings-context';
 
 export default function DashboardPage() {
   const { tickets } = useTickets();
+  const { ticketDisplayLimit } = useSettings();
 
   const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
   const resolvedToday = tickets.filter(t => t.status === 'Resolved' && new Date(t.createdAt).toDateString() === new Date().toDateString()).length;
@@ -44,7 +46,7 @@ export default function DashboardPage() {
     },
   ];
   
-  const recentTickets = tickets.slice(0, 5);
+  const recentTickets = ticketDisplayLimit === -1 ? tickets : tickets.slice(0, ticketDisplayLimit);
 
   return (
     <div className="flex flex-col gap-6">

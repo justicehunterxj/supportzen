@@ -31,7 +31,8 @@ export default function SettingsPage() {
     const { 
         theme, setTheme, 
         timeFormat, setTimeFormat,
-        avatarUrl, setAvatarUrl
+        avatarUrl, setAvatarUrl,
+        ticketDisplayLimit, setTicketDisplayLimit
     } = useSettings();
     const { tickets, setTickets } = useTickets();
     const { shifts, setShifts } = useShifts();
@@ -79,7 +80,8 @@ export default function SettingsPage() {
                 settings: {
                     theme,
                     timeFormat,
-                    avatarUrl
+                    avatarUrl,
+                    ticketDisplayLimit
                 },
                 tickets: tickets.map(t => ({...t, createdAt: t.createdAt.toISOString()})),
                 shifts,
@@ -131,6 +133,7 @@ export default function SettingsPage() {
                     if (importedData.settings.theme) setTheme(importedData.settings.theme);
                     if (importedData.settings.timeFormat) setTimeFormat(importedData.settings.timeFormat as TimeFormat);
                     if (importedData.settings.avatarUrl) setAvatarUrl(importedData.settings.avatarUrl);
+                    if (importedData.settings.ticketDisplayLimit) setTicketDisplayLimit(importedData.settings.ticketDisplayLimit);
                 }
                 if (Array.isArray(importedData.tickets)) {
                     const parsedTickets: Ticket[] = importedData.tickets.map((t: any) => {
@@ -202,12 +205,14 @@ export default function SettingsPage() {
             setAvatarUrl(initialAvatar);
             setTheme('system');
             setTimeFormat('12h');
+            setTicketDisplayLimit(10);
 
             // Explicitly set localStorage to empty arrays to persist the cleared state
             localStorage.setItem('tickets', '[]');
             localStorage.setItem('shifts', '[]');
             localStorage.removeItem('avatarUrl');
             localStorage.removeItem('timeFormat');
+            localStorage.removeItem('ticketDisplayLimit');
             // 'theme' is handled by next-themes library, no need to remove manually
 
             toast({
@@ -311,7 +316,7 @@ export default function SettingsPage() {
                     <CardTitle>Appearance</CardTitle>
                     <CardDescription>Customize the look and feel of the app.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label>Theme</Label>
                         <RadioGroup
@@ -344,6 +349,31 @@ export default function SettingsPage() {
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="24h" id="24h" />
                                 <Label htmlFor="24h">24-hour</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Recent Tickets Display Limit</Label>
+                        <RadioGroup
+                            value={ticketDisplayLimit.toString()}
+                            onValueChange={(value) => setTicketDisplayLimit(parseInt(value, 10))}
+                            className="flex flex-wrap items-center gap-x-4 gap-y-2"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="10" id="limit-10" />
+                                <Label htmlFor="limit-10">10</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="20" id="limit-20" />
+                                <Label htmlFor="limit-20">20</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="50" id="limit-50" />
+                                <Label htmlFor="limit-50">50</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="-1" id="limit-all" />
+                                <Label htmlFor="limit-all">All</Label>
                             </div>
                         </RadioGroup>
                     </div>
