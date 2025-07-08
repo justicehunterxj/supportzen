@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { ShiftStatusBadge } from '@/components/shift-status-badge';
 
 export function ShiftPage() {
   const [shifts, setShifts] = React.useState<Shift[]>(mockShifts);
@@ -68,7 +69,7 @@ export function ShiftPage() {
         description: "The shift has been successfully updated.",
       });
     } else {
-      const newShift = { ...shiftData, id: `SH-${shifts.length + 1}` };
+      const newShift = { ...shiftData, id: `SH-${shifts.length + 1}`, status: 'Pending' as const };
       setShifts([...shifts, newShift]);
       toast({
         title: "Shift Created",
@@ -93,7 +94,7 @@ export function ShiftPage() {
               <TableHead>Name</TableHead>
               <TableHead>Start Time</TableHead>
               <TableHead>End Time</TableHead>
-              <TableHead>Assigned Staff</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -102,8 +103,10 @@ export function ShiftPage() {
               <TableRow key={shift.id}>
                 <TableCell className="font-medium">{shift.name}</TableCell>
                 <TableCell>{shift.startTime}</TableCell>
-                <TableCell>{shift.endTime}</TableCell>
-                <TableCell>{shift.assigned}</TableCell>
+                <TableCell>{shift.endTime || 'N/A'}</TableCell>
+                <TableCell>
+                  <ShiftStatusBadge status={shift.status} />
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

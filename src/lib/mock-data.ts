@@ -63,8 +63,8 @@ export const mockTickets: Ticket[] = [
 ];
 
 export const mockShifts: Shift[] = [
-    { id: 'SH-1', name: 'Morning Shift', startTime: '08:00', endTime: '16:00', assigned: 'Alice, Bob' },
-    { id: 'SH-2', name: 'Evening Shift', startTime: '16:00', endTime: '00:00', assigned: 'Charlie, Diana' },
-    { id: 'SH-3', name: 'Night Shift', startTime: '00:00', endTime: '08:00', assigned: 'Ethan' },
-    { id: 'SH-4', name: 'Weekend On-Call', startTime: '10:00', endTime: '18:00', assigned: 'Frank' },
+    { id: 'SH-1', name: 'Morning Shift', startTime: '08:00', endTime: '16:00', status: 'Completed' },
+    { id: 'SH-2', name: 'Evening Shift', startTime: '16:00', status: 'Active' },
+    { id: 'SH-3', name: 'Night Shift', startTime: '00:00', status: 'Pending' },
+    { id: 'SH-4', name: 'Weekend On-Call', startTime: '10:00', status: 'Pending' },
 ];

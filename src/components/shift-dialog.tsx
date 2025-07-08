@@ -28,8 +28,6 @@ import type { Shift } from '@/lib/types';
 const shiftSchema = z.object({
   name: z.string().min(1, 'Shift name is required.'),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM).'),
-  endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM).'),
-  assigned: z.string().min(1, 'At least one staff member must be assigned.'),
 });
 
 type ShiftFormValues = z.infer<typeof shiftSchema>;
@@ -47,29 +45,32 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogPro
     defaultValues: {
       name: '',
       startTime: '',
-      endTime: '',
-      assigned: '',
     },
   });
 
   React.useEffect(() => {
-    if (shift) {
-      form.reset(shift);
-    } else {
-      const defaultShiftName = format(new Date(), "MMMM d, yyyy (EEEE) 'Shift'");
-      form.reset({
-        name: defaultShiftName,
-        startTime: '',
-        endTime: '',
-        assigned: '',
-      });
+    if (isOpen) {
+        if (shift) {
+            form.reset({
+                name: shift.name,
+                startTime: shift.startTime,
+            });
+        } else {
+            const defaultShiftName = format(new Date(), "MMMM d, yyyy (EEEE) 'Shift'");
+            form.reset({
+                name: defaultShiftName,
+                startTime: '',
+            });
+        }
     }
   }, [shift, form, isOpen]);
 
   const onSubmit = (data: ShiftFormValues) => {
     onSave({
+      ...shift,
       ...data,
       id: shift?.id || '',
+      status: shift?.status || 'Pending',
     });
     setIsOpen(false);
   };
@@ -98,8 +99,7 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogPro
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
+            <FormField
                 control={form.control}
                 name="startTime"
                 render={({ field }) => (
@@ -112,33 +112,6 @@ export function ShiftDialog({ isOpen, setIsOpen, shift, onSave }: ShiftDialogPro
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="endTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Time</FormLabel>
-                    <FormControl>
-                      <Input placeholder="HH:MM" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="assigned"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assigned Staff</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Alice, Bob" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
                 Cancel

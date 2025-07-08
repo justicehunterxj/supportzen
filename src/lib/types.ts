@@ -1,5 +1,7 @@
 export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
 export type AITool = 'ChatGPT' | 'Gemini' | 'Claude' | 'Copilot' | 'Perplexity';
+export type ShiftStatus = 'Pending' | 'Active' | 'Completed';
+
 
 export type Ticket = {
   id: string;
@@ -16,8 +18,8 @@ export type Shift = {
   id: string;
   name: string;
   startTime: string;
-  endTime: string;
-  assigned: string;
+  endTime?: string;
+  status: ShiftStatus;
 };
 
 export type Stat = {
