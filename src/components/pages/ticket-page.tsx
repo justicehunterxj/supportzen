@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Archive } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
@@ -115,6 +115,14 @@ export function TicketPage() {
     setSelectedTicket(null);
   };
 
+  const handleArchiveTicket = (ticketToArchive: Ticket) => {
+    updateTicket({ ...ticketToArchive, isArchived: true });
+    toast({
+      title: "Ticket Archived",
+      description: `Ticket ${ticketToArchive.id} has been moved to History.`,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -170,6 +178,10 @@ export function TicketPage() {
                       <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleArchiveTicket(ticket)}>
+                        <Archive className="mr-2 h-4 w-4" />
+                        Archive
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDeleteClick(ticket.id)} className="text-red-600">
                         <Trash2 className="mr-2 h-4 w-4" />
