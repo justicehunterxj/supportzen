@@ -132,7 +132,7 @@ export default function SettingsPage() {
                 const importedData = JSON.parse(text);
                 const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
 
-                // Validate and set data
+                // Validate and set settings
                 if (importedData.settings) {
                     if (importedData.settings.theme) setTheme(importedData.settings.theme);
                     if (importedData.settings.timeFormat) setTimeFormat(importedData.settings.timeFormat as TimeFormat);
@@ -141,7 +141,28 @@ export default function SettingsPage() {
                         setTicketDisplayLimit(importedData.settings.ticketDisplayLimit);
                     }
                 }
+                
+                // Migrate shifts first to create an ID map
+                const oldToNewShiftIdMap = new Map<string, string>();
+                if (Array.isArray(importedData.shifts)) {
+                    let shiftCounter = 1;
+                    const parsedShifts: Shift[] = importedData.shifts.map((s: any) => {
+                        const newId = `SH-${shiftCounter++}`;
+                        if (s.id) {
+                            oldToNewShiftIdMap.set(s.id, newId);
+                        }
+                        return {
+                            ...s,
+                            id: newId,
+                            startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
+                            endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
+                        };
+                    });
+                    setShifts(parsedShifts);
+                }
+
                 if (Array.isArray(importedData.tickets)) {
+                    let ticketCounter = 1;
                     const parsedTickets: Ticket[] = importedData.tickets.map((t: any) => {
                         const agentResponse = t.agentResponse || t.response;
                         
@@ -163,32 +184,29 @@ export default function SettingsPage() {
                             mappedCategory = ['Others'];
                         }
 
-                        // Remove original response and category to avoid conflicts if they exist
                         const { response, category, ...restOfTicket } = t;
+
+                        const newTicketId = `TKT-${String(ticketCounter++).padStart(3, '0')}`;
+                        // Use the map to update the shiftId
+                        const newShiftId = t.shiftId ? oldToNewShiftIdMap.get(t.shiftId) : undefined;
 
                         return {
                             ...restOfTicket,
+                            id: newTicketId,
                             agentResponse,
                             category: mappedCategory,
                             createdAt: new Date(t.createdAt),
                             updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
                             isArchived: t.isArchived || false,
+                            shiftId: newShiftId,
                         };
                     });
                     setTickets(parsedTickets);
                 }
-                if (Array.isArray(importedData.shifts)) {
-                    const parsedShifts: Shift[] = importedData.shifts.map((s: any) => ({
-                        ...s,
-                        startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
-                        endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
-                    }));
-                    setShifts(parsedShifts);
-                }
-
+                
                 toast({
                     title: "Import Successful",
-                    description: "Your data and settings have been restored.",
+                    description: "Your data and settings have been restored and migrated.",
                 });
 
             } catch (error) {
