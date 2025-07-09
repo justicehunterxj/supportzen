@@ -36,12 +36,19 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
         try {
             const storedShifts = localStorage.getItem('shifts');
             if (storedShifts) {
-                const parsedShifts = JSON.parse(storedShifts).map((s: any) => ({
+                let parsedShifts = JSON.parse(storedShifts).map((s: any) => ({
                     ...s,
                     startedAt: s.startedAt ? new Date(s.startedAt) : undefined,
                     endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
                 }));
-                setShifts(parsedShifts);
+                
+                // Migration: Re-number all shifts to ensure sequential IDs
+                let shiftCounter = 1;
+                const renumberedShifts = parsedShifts.map((shift: any) => {
+                    return { ...shift, id: `SH-${shiftCounter++}` };
+                });
+                setShifts(renumberedShifts);
+
             } else {
                 setShifts(mockShifts);
             }

@@ -40,7 +40,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
             if (storedTickets) {
                 const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
                 
-                processedTickets = JSON.parse(storedTickets).map((t: any) => {
+                let parsedTickets = JSON.parse(storedTickets).map((t: any) => {
                     // This is the migration logic
                     let mappedCategory: TicketCategory[];
                     if (typeof t.category === 'string') {
@@ -68,6 +68,13 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                         isArchived: t.isArchived || false,
                     };
                 });
+
+                 // Migration: Re-number all tickets to ensure sequential IDs
+                 let ticketCounter = 1;
+                 processedTickets = parsedTickets.map((ticket: any) => {
+                     return { ...ticket, id: `TKT-${String(ticketCounter++).padStart(3, '0')}` };
+                 });
+
             } else {
                 processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
             }
