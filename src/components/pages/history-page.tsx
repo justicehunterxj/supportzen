@@ -15,16 +15,39 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
+import { useSettings } from '@/contexts/settings-context';
 
 export function HistoryPage() {
   const { tickets, updateTicket } = useTickets();
+  const { ticketDisplayLimit } = useSettings();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const archivedTickets = React.useMemo(() => {
     return tickets.filter(t => t.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }, [tickets]);
+  
+  const totalPages = React.useMemo(() => {
+    if (ticketDisplayLimit === -1 || archivedTickets.length === 0) return 1;
+    return Math.ceil(archivedTickets.length / ticketDisplayLimit);
+  }, [archivedTickets.length, ticketDisplayLimit]);
+
+  const displayTickets = React.useMemo(() => {
+    if (ticketDisplayLimit === -1) {
+      return archivedTickets;
+    }
+    const startIndex = (currentPage - 1) * ticketDisplayLimit;
+    const endIndex = startIndex + ticketDisplayLimit;
+    return archivedTickets.slice(startIndex, endIndex);
+  }, [archivedTickets, currentPage, ticketDisplayLimit]);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages > 0 ? totalPages : 1);
+    }
+  }, [currentPage, totalPages]);
 
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
@@ -55,8 +78,8 @@ export function HistoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {archivedTickets.length > 0 ? (
-                archivedTickets.map((ticket) => (
+            {displayTickets.length > 0 ? (
+                displayTickets.map((ticket) => (
                 <TableRow key={ticket.id}>
                     <TableCell className="font-medium">{ticket.id}</TableCell>
                     <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
@@ -93,6 +116,29 @@ export function HistoryPage() {
           </TableBody>
         </Table>
       </div>
+      {ticketDisplayLimit !== -1 && archivedTickets.length > ticketDisplayLimit && (
+        <div className="flex w-full items-center justify-end gap-2">
+            <span className="mr-auto text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => p - 1)}
+                disabled={currentPage === 1}
+            >
+                Previous
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => p + 1)}
+                disabled={currentPage >= totalPages}
+            >
+                Next
+            </Button>
+        </div>
+      )}
       <TicketDialog
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}
