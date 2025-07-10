@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -17,13 +18,10 @@ interface TicketContextType {
 const TicketContext = React.createContext<TicketContextType | undefined>(undefined);
 
 const getNextTicketId = (currentTickets: Ticket[]): string => {
-    if (!currentTickets || currentTickets.length === 0) {
-        return 'TKT-001';
-    }
-    const highestId = currentTickets
-        .map(t => parseInt(t.id.replace('TKT-', ''), 10))
-        .filter(id => !isNaN(id))
-        .reduce((max, current) => Math.max(max, current), 0);
+    const highestId = currentTickets.reduce((maxId, ticket) => {
+        const ticketIdNum = parseInt(ticket.id.replace('TKT-', ''), 10);
+        return !isNaN(ticketIdNum) && ticketIdNum > maxId ? ticketIdNum : maxId;
+    }, 0);
     return `TKT-${(highestId + 1).toString().padStart(3, '0')}`;
 };
 
@@ -110,15 +108,17 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     
     const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'shiftId' | 'isArchived'>) => {
         const now = new Date();
-        const newTicket: Ticket = {
-            ...ticketData,
-            id: getNextTicketId(tickets),
-            createdAt: now,
-            updatedAt: now,
-            shiftId: activeShift?.id,
-            isArchived: false,
-        };
-        setTickets(prevTickets => [newTicket, ...prevTickets]);
+        setTickets(prevTickets => {
+            const newTicket: Ticket = {
+                ...ticketData,
+                id: getNextTicketId(prevTickets),
+                createdAt: now,
+                updatedAt: now,
+                shiftId: activeShift?.id,
+                isArchived: false,
+            };
+            return [newTicket, ...prevTickets];
+        });
     };
 
     const updateTicket = (updatedTicket: Ticket) => {
