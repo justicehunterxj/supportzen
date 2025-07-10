@@ -40,7 +40,8 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
             if (storedTickets) {
                 const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
                 
-                let parsedTickets = JSON.parse(storedTickets).map((t: any) => {
+                let ticketCounter = 1;
+                const parsedAndRenumberedTickets = JSON.parse(storedTickets).map((t: any) => {
                     // This is the migration logic
                     let mappedCategory: TicketCategory[];
                     if (typeof t.category === 'string') {
@@ -62,18 +63,14 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
 
                     return {
                         ...t,
+                        id: `TKT-${String(ticketCounter++).padStart(3, '0')}`,
                         category: mappedCategory,
                         createdAt: new Date(t.createdAt),
                         updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
                         isArchived: t.isArchived || false,
                     };
                 });
-
-                 // Migration: Re-number all tickets to ensure sequential IDs
-                 let ticketCounter = 1;
-                 processedTickets = parsedTickets.map((ticket: any) => {
-                     return { ...ticket, id: `TKT-${String(ticketCounter++).padStart(3, '0')}` };
-                 });
+                processedTickets = parsedAndRenumberedTickets;
 
             } else {
                 processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
@@ -125,11 +122,17 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updateTicket = (updatedTicket: Ticket) => {
-        setTickets(prevTickets => prevTickets.map(t => 
-            t.id === updatedTicket.id 
-                ? { ...updatedTicket, updatedAt: new Date() } 
-                : t
-        ));
+        setTickets(prevTickets => prevTickets.map(t => {
+            if (t.id === updatedTicket.id) {
+                const newTicketData = { ...updatedTicket, updatedAt: new Date() };
+                // If a shift is active, bind this ticket to it.
+                if (activeShift) {
+                    newTicketData.shiftId = activeShift.id;
+                }
+                return newTicketData;
+            }
+            return t;
+        }));
     };
 
     const deleteTicket = (ticketId: string) => {

@@ -70,25 +70,16 @@ export function ShiftTimer() {
     };
     
     const handleArchiveAndEndShift = () => {
-        if (!activeShift || !activeShift.startedAt) return;
-    
-        const startedAt = new Date(activeShift.startedAt);
-        const endedAt = new Date();
+        if (!activeShift) return;
     
         const ticketsToUpdate = tickets.map(ticket => {
-            let currentTicket = { ...ticket };
-            const updatedAt = new Date(ticket.updatedAt);
-    
-            if (updatedAt >= startedAt && updatedAt <= endedAt) {
-                currentTicket.shiftId = activeShift.id;
-            }
-    
-            if (currentTicket.shiftId === activeShift.id) {
-                if (currentTicket.status === 'Open' || currentTicket.status === 'Resolved' || currentTicket.status === 'Closed') {
-                    currentTicket.isArchived = true;
+            if (ticket.shiftId === activeShift.id) {
+                // Archive if not 'In Progress'.
+                if (ticket.status !== 'In Progress') {
+                    return { ...ticket, isArchived: true };
                 }
             }
-            return currentTicket;
+            return ticket;
         });
     
         setTickets(ticketsToUpdate);
