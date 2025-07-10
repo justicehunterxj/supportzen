@@ -25,9 +25,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Wand2, Loader2 } from 'lucide-react';
+import { Wand2, Loader2, Sparkles } from 'lucide-react';
 import type { Ticket, TicketStatus, AITool, TicketCategory } from '@/lib/types';
 import { suggestStatus } from '@/ai/flows/suggestStatus';
+import { summarizeTicket } from '@/ai/flows/summarizeTicket';
 import { useToast } from '@/hooks/use-toast';
 import { useShifts } from '@/contexts/shift-context';
 
@@ -55,6 +56,7 @@ interface TicketDialogProps {
 
 export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialogProps) {
   const [isSuggesting, setIsSuggesting] = React.useState(false);
+  const [isSummarizing, setIsSummarizing] = React.useState(false);
   const { toast } = useToast();
   const { activeShift } = useShifts();
 
@@ -124,6 +126,41 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       setIsSuggesting(false);
     }
   };
+  
+  const handleSummarizeTicket = async () => {
+    setIsSummarizing(true);
+    try {
+        const description = form.getValues('description');
+        const agentResponse = form.getValues('agentResponse');
+
+        if (!description) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Please enter a description before generating a summary.',
+            });
+            return;
+        }
+
+        const result = await summarizeTicket({ description, agentResponse });
+        form.setValue('agentResponse', result, { shouldValidate: true });
+
+        toast({
+            title: 'AI Summary Generated',
+            description: 'The agent response has been populated with the summary.',
+        });
+    } catch (error) {
+        console.error('Failed to summarize ticket:', error);
+        toast({
+            variant: 'destructive',
+            title: 'AI Summary Failed',
+            description: 'Could not get a summary from the AI.',
+        });
+    } finally {
+        setIsSummarizing(false);
+    }
+  };
+
 
   const onSubmit = (data: TicketFormValues) => {
     const now = new Date();
@@ -232,7 +269,13 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
               name="agentResponse"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Agent Response</FormLabel>
+                  <div className="flex justify-between items-center">
+                    <FormLabel>Agent Response</FormLabel>
+                    <Button type="button" variant="outline" size="sm" className="gap-2 -my-1" onClick={handleSummarizeTicket} disabled={isSummarizing}>
+                         {isSummarizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                         Generate Summary
+                    </Button>
+                  </div>
                   <FormControl>
                     <Textarea placeholder="Describe the resolution or next steps..." {...field} rows={4}/>
                   </FormControl>
