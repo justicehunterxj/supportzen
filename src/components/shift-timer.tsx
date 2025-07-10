@@ -6,7 +6,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useShifts } from '@/contexts/shift-context';
 import { ShiftDialog } from '@/components/shift-dialog';
-import type { Shift } from '@/lib/types';
+import type { Shift, Ticket } from '@/lib/types';
 import { useSettings } from '@/contexts/settings-context';
 import { format } from 'date-fns';
 import { useTickets } from '@/contexts/ticket-context';
@@ -28,6 +28,7 @@ export function ShiftTimer() {
     const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [isArchiveAlertOpen, setIsArchiveAlertOpen] = React.useState(false);
+    const [ticketsToArchive, setTicketsToArchive] = React.useState<Ticket[]>([]);
 
     React.useEffect(() => {
         if (!activeShift || !activeShift.startedAt) {
@@ -66,18 +67,34 @@ export function ShiftTimer() {
 
     const handleEndShiftClick = () => {
         if (!activeShift) return;
-        setIsArchiveAlertOpen(true);
+
+        // Find tickets that were updated during the active shift
+        const shiftTickets = tickets.filter(ticket => {
+            if (!activeShift.startedAt) return false;
+            const updatedAt = new Date(ticket.updatedAt);
+            const startedAt = new Date(activeShift.startedAt);
+            return updatedAt >= startedAt && ticket.shiftId === activeShift.id;
+        });
+
+        const toArchive = shiftTickets.filter(
+            (ticket) => ticket.status !== 'In Progress'
+        );
+        
+        if (toArchive.length > 0) {
+            setTicketsToArchive(toArchive);
+            setIsArchiveAlertOpen(true);
+        } else {
+            // If no tickets to archive, just end the shift
+            endActiveShift();
+        }
     };
     
     const handleArchiveAndEndShift = () => {
-        if (!activeShift) return;
-    
+        const ticketIdsToArchive = new Set(ticketsToArchive.map(t => t.id));
+
         const ticketsToUpdate = tickets.map(ticket => {
-            if (ticket.shiftId === activeShift.id) {
-                // Archive if not 'In Progress'.
-                if (ticket.status !== 'In Progress') {
-                    return { ...ticket, isArchived: true };
-                }
+            if (ticketIdsToArchive.has(ticket.id)) {
+                return { ...ticket, isArchived: true };
             }
             return ticket;
         });
@@ -85,6 +102,7 @@ export function ShiftTimer() {
         setTickets(ticketsToUpdate);
         endActiveShift();
         setIsArchiveAlertOpen(false);
+        setTicketsToArchive([]);
     };
 
 
@@ -156,7 +174,7 @@ export function ShiftTimer() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>End Shift and Archive Tickets?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will end your current shift. Tickets that are 'Open', 'Resolved', or 'Closed' will be moved to the History tab. 'In Progress' tickets will remain on the dashboard.
+                        This will end your current shift. Tickets ({ticketsToArchive.length}) that are 'Open', 'Resolved', or 'Closed' will be moved to the History tab. 'In Progress' tickets will remain on the dashboard.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

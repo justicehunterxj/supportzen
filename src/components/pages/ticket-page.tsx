@@ -27,9 +27,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { useShifts } from '@/contexts/shift-context';
 import { useSettings } from '@/contexts/settings-context';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export function TicketPage() {
-  const { tickets, addTicket, updateTicket, deleteTicket } = useTickets();
+  const { tickets, addTicket, updateTicket, deleteTicket, setTickets } = useTickets();
   const { activeShift } = useShifts();
   const { ticketDisplayLimit } = useSettings();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -38,6 +39,7 @@ export function TicketPage() {
   const [ticketToDelete, setTicketToDelete] = React.useState<string | null>(null);
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [selectedTicketIds, setSelectedTicketIds] = React.useState<string[]>([]);
 
   const activeTickets = React.useMemo(() => tickets.filter(t => !t.isArchived), [tickets]);
 
@@ -59,6 +61,11 @@ export function TicketPage() {
     const endIndex = startIndex + ticketDisplayLimit;
     return activeTickets.slice(startIndex, endIndex);
   }, [activeTickets, currentPage, ticketDisplayLimit]);
+  
+  const isAllDisplayedSelected = React.useMemo(() => {
+    if(displayTickets.length === 0) return false;
+    return displayTickets.every(ticket => selectedTicketIds.includes(ticket.id));
+  }, [displayTickets, selectedTicketIds]);
 
   React.useEffect(() => {
     if (currentPage > totalPages) {
@@ -69,6 +76,39 @@ export function TicketPage() {
   const startIndex = (currentPage - 1) * ticketDisplayLimit;
   const startRange = activeTickets.length > 0 ? startIndex + 1 : 0;
   const endRange = startIndex + displayTickets.length;
+  
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allDisplayedIds = displayTickets.map(t => t.id);
+      setSelectedTicketIds(prev => [...new Set([...prev, ...allDisplayedIds])]);
+    } else {
+      const allDisplayedIds = displayTickets.map(t => t.id);
+      setSelectedTicketIds(prev => prev.filter(id => !allDisplayedIds.includes(id)));
+    }
+  }
+  
+  const handleSelectSingle = (ticketId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTicketIds(prev => [...prev, ticketId]);
+    } else {
+      setSelectedTicketIds(prev => prev.filter(id => id !== ticketId));
+    }
+  };
+
+  const handleBulkArchive = () => {
+    setTickets(currentTickets =>
+      currentTickets.map(ticket =>
+        selectedTicketIds.includes(ticket.id)
+          ? { ...ticket, isArchived: true }
+          : ticket
+      )
+    );
+    toast({
+      title: 'Tickets Archived',
+      description: `${selectedTicketIds.length} tickets have been moved to History.`,
+    });
+    setSelectedTicketIds([]);
+  };
 
   const handleAddTicket = () => {
     setSelectedTicket(null);
@@ -139,15 +179,30 @@ export function TicketPage() {
             }
           </p>
         </div>
-        <Button onClick={handleAddTicket} className="gap-2 flex-shrink-0">
-          <PlusCircle className="h-4 w-4" />
-          Add New Ticket
-        </Button>
+        <div className="flex items-center gap-2">
+           {selectedTicketIds.length > 0 && (
+             <Button onClick={handleBulkArchive} variant="outline" size="sm" className="gap-2">
+                <Archive className="h-4 w-4" />
+                Archive Selected ({selectedTicketIds.length})
+              </Button>
+            )}
+            <Button onClick={handleAddTicket} className="gap-2 flex-shrink-0">
+              <PlusCircle className="h-4 w-4" />
+              Add New Ticket
+            </Button>
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={isAllDisplayedSelected}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead>ID</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
@@ -158,7 +213,14 @@ export function TicketPage() {
           </TableHeader>
           <TableBody>
             {displayTickets.map((ticket) => (
-              <TableRow key={ticket.id}>
+              <TableRow key={ticket.id} data-state={selectedTicketIds.includes(ticket.id) && "selected"}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedTicketIds.includes(ticket.id)}
+                    onCheckedChange={(checked) => handleSelectSingle(ticket.id, !!checked)}
+                    aria-label={`Select ticket ${ticket.id}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">{ticket.id}</TableCell>
                 <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
                 <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
@@ -194,7 +256,7 @@ export function TicketPage() {
             ))}
              {displayTickets.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   No tickets found.
                 </TableCell>
               </TableRow>
