@@ -29,6 +29,7 @@ import { Wand2, Loader2 } from 'lucide-react';
 import type { Ticket, TicketStatus, AITool, TicketCategory } from '@/lib/types';
 import { suggestStatus } from '@/ai/flows/suggestStatus';
 import { useToast } from '@/hooks/use-toast';
+import { useShifts } from '@/contexts/shift-context';
 
 const aiTools: AITool[] = ['ChatGPT', 'Gemini', 'Claude', 'Copilot', 'Perplexity'];
 const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
@@ -55,6 +56,7 @@ interface TicketDialogProps {
 export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialogProps) {
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const { toast } = useToast();
+  const { activeShift } = useShifts();
 
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
@@ -314,6 +316,13 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
                 </FormItem>
               )}
             />
+            
+            {!ticket && activeShift && (
+              <div className="text-sm text-muted-foreground p-3 bg-secondary rounded-md">
+                This ticket will be added to your current shift: <span className="font-semibold text-foreground">{activeShift.name}</span>
+              </div>
+            )}
+
             <DialogFooter>
               <Button type="button" variant="ghost" onClick={() => setIsOpen(false)}>
                 Cancel
