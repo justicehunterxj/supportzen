@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
 import { TicketDialog } from '@/components/ticket-dialog';
-import type { Ticket } from '@/lib/types';
+import { ShiftDialog } from '@/components/shift-dialog';
+import type { Shift, Ticket } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,9 +32,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 export function TicketPage() {
   const { tickets, addTicket, updateTicket, deleteTicket, setTickets } = useTickets();
-  const { activeShift } = useShifts();
+  const { activeShift, startNewShift } = useShifts();
   const { ticketDisplayLimit } = useSettings();
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = React.useState(false);
+  const [isShiftDialogOpen, setIsShiftDialogOpen] = React.useState(false);
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const [ticketToDelete, setTicketToDelete] = React.useState<string | null>(null);
@@ -111,13 +113,17 @@ export function TicketPage() {
   };
 
   const handleAddTicket = () => {
-    setSelectedTicket(null);
-    setIsDialogOpen(true);
+    if (!activeShift) {
+        setIsShiftDialogOpen(true);
+    } else {
+        setSelectedTicket(null);
+        setIsTicketDialogOpen(true);
+    }
   };
 
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
-    setIsDialogOpen(true);
+    setIsTicketDialogOpen(true);
   };
 
   const handleDeleteClick = (id: string) => {
@@ -153,6 +159,13 @@ export function TicketPage() {
       });
     }
     setSelectedTicket(null);
+  };
+  
+  const handleSaveAndStartShift = (shiftData: Shift) => {
+    startNewShift({ name: shiftData.name, startTime: shiftData.startTime });
+    // After starting a shift, open the ticket dialog.
+    setSelectedTicket(null);
+    setIsTicketDialogOpen(true);
   };
 
   const handleArchiveTicket = (ticketToArchive: Ticket) => {
@@ -288,10 +301,17 @@ export function TicketPage() {
         </div>
       )}
       <TicketDialog
-        isOpen={isDialogOpen}
-        setIsOpen={setIsDialogOpen}
+        isOpen={isTicketDialogOpen}
+        setIsOpen={setIsTicketDialogOpen}
         ticket={selectedTicket}
         onSave={handleSaveTicket}
+      />
+      <ShiftDialog
+        isOpen={isShiftDialogOpen}
+        setIsOpen={setIsShiftDialogOpen}
+        shift={null}
+        onSave={handleSaveAndStartShift}
+        isStartingShift={true}
       />
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
