@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, Archive } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Pencil, Trash2, Archive, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
@@ -285,6 +285,15 @@ export function TicketPage() {
             <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+            >
+                <ChevronsLeft className="h-4 w-4 mr-1" />
+                First
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setCurrentPage(p => p - 1)}
                 disabled={currentPage === 1}
             >
@@ -297,6 +306,15 @@ export function TicketPage() {
                 disabled={currentPage >= totalPages}
             >
                 Next
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage >= totalPages}
+            >
+                Last
+                <ChevronsRight className="h-4 w-4 ml-1" />
             </Button>
         </div>
       )}

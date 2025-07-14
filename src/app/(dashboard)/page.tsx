@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Ticket as TicketIcon, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import { Ticket as TicketIcon, CheckCircle, Clock, DollarSign, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { StatCard } from '@/components/stat-card';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -160,6 +160,15 @@ export default function DashboardPage() {
                 Page {currentPage} of {totalPages}
               </span>
               <div className="flex gap-2">
+                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                  First
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -175,6 +184,15 @@ export default function DashboardPage() {
                   disabled={currentPage >= totalPages}
                 >
                   Next
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage >= totalPages}
+                >
+                  Last
+                  <ChevronsRight className="h-4 w-4" />
                 </Button>
               </div>
             </div>
