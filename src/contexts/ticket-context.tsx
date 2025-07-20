@@ -19,8 +19,11 @@ const TicketContext = React.createContext<TicketContextType | undefined>(undefin
 
 const getNextTicketId = (currentTickets: Ticket[]): string => {
     const highestId = currentTickets.reduce((maxId, ticket) => {
-        const ticketIdNum = parseInt(ticket.id.replace('TKT-', ''), 10);
-        return !isNaN(ticketIdNum) && ticketIdNum > maxId ? ticketIdNum : maxId;
+        if (ticket.id && ticket.id.startsWith('TKT-')) {
+            const ticketIdNum = parseInt(ticket.id.replace('TKT-', ''), 10);
+            return !isNaN(ticketIdNum) && ticketIdNum > maxId ? ticketIdNum : maxId;
+        }
+        return maxId;
     }, 0);
     return `TKT-${(highestId + 1).toString().padStart(3, '0')}`;
 };
@@ -33,43 +36,47 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     React.useEffect(() => {
         try {
             const storedTickets = localStorage.getItem('tickets');
-            let processedTickets: Ticket[];
+            let processedTickets: Ticket[] = [];
 
             if (storedTickets) {
-                const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
-                
-                let ticketCounter = 1;
-                const parsedAndRenumberedTickets = JSON.parse(storedTickets).map((t: any) => {
-                    // This is the migration logic
-                    let mappedCategory: TicketCategory[];
-                    if (typeof t.category === 'string') {
-                        if (t.category === 'Support') { // old value
-                            mappedCategory = ['General Query'];
-                        } else if ((ticketCategories as string[]).includes(t.category)) {
-                            mappedCategory = [t.category as TicketCategory];
+                const parsedTickets = JSON.parse(storedTickets).map((t: any) => ({
+                    ...t,
+                    createdAt: new Date(t.createdAt),
+                    updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
+                }));
+
+                const needsMigration = parsedTickets.some((t: Ticket) => !t.id || !t.id.startsWith('TKT-'));
+
+                if (needsMigration) {
+                    const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
+                    let ticketCounter = 1;
+                    processedTickets = parsedTickets.map((t: any) => {
+                        let mappedCategory: TicketCategory[];
+                        if (typeof t.category === 'string') {
+                            if (t.category === 'Support') { 
+                                mappedCategory = ['General Query'];
+                            } else if ((ticketCategories as string[]).includes(t.category)) {
+                                mappedCategory = [t.category as TicketCategory];
+                            } else {
+                                mappedCategory = ['Others'];
+                            }
+                        } else if (Array.isArray(t.category)) {
+                            mappedCategory = t.category.filter((c: any) => (ticketCategories as string[]).includes(c));
+                            if (mappedCategory.length === 0) mappedCategory = ['Others'];
                         } else {
                             mappedCategory = ['Others'];
                         }
-                    } else if (Array.isArray(t.category)) {
-                        mappedCategory = t.category.filter((c: any) => (ticketCategories as string[]).includes(c));
-                        if (mappedCategory.length === 0) {
-                            mappedCategory = ['Others'];
-                        }
-                    } else {
-                        mappedCategory = ['Others'];
-                    }
 
-                    return {
-                        ...t,
-                        id: `TKT-${String(ticketCounter++).padStart(3, '0')}`,
-                        category: mappedCategory,
-                        createdAt: new Date(t.createdAt),
-                        updatedAt: t.updatedAt ? new Date(t.updatedAt) : new Date(t.createdAt),
-                        isArchived: t.isArchived || false,
-                    };
-                });
-                processedTickets = parsedAndRenumberedTickets;
-
+                        return {
+                            ...t,
+                            id: `TKT-${String(ticketCounter++).padStart(3, '0')}`,
+                            category: mappedCategory,
+                            isArchived: t.isArchived || false,
+                        };
+                    });
+                } else {
+                    processedTickets = parsedTickets;
+                }
             } else {
                 processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
             }
@@ -106,7 +113,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [tickets, isLoaded]);
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'shiftId' | 'isArchived'>) => {
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => {
         const now = new Date();
         setTickets(prevTickets => {
             const newTicket: Ticket = {
@@ -125,7 +132,6 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         setTickets(prevTickets => prevTickets.map(t => {
             if (t.id === updatedTicket.id) {
                 const newTicketData = { ...updatedTicket, updatedAt: new Date() };
-                // If a shift is active, bind this ticket to it.
                 if (activeShift) {
                     newTicketData.shiftId = activeShift.id;
                 }
