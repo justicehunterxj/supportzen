@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { MoreHorizontal, Pencil, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { MoreHorizontal, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
@@ -15,39 +15,29 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
-import { useSettings } from '@/contexts/settings-context';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { format } from 'date-fns';
 
 export function HistoryPage() {
   const { tickets, updateTicket } = useTickets();
-  const { ticketDisplayLimit } = useSettings();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const { toast } = useToast();
-  const [currentPage, setCurrentPage] = React.useState(1);
 
-  const archivedTickets = React.useMemo(() => {
-    return tickets.filter(t => t.isArchived).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  const groupedTickets = React.useMemo(() => {
+    const archivedTickets = tickets.filter(t => t.isArchived);
+
+    const groups = archivedTickets.reduce((acc, ticket) => {
+      const dateKey = format(new Date(ticket.updatedAt), 'yyyy-MM-dd');
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(ticket);
+      return acc;
+    }, {} as Record<string, Ticket[]>);
+
+    return Object.entries(groups).sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime());
   }, [tickets]);
-  
-  const totalPages = React.useMemo(() => {
-    if (ticketDisplayLimit === -1 || archivedTickets.length === 0) return 1;
-    return Math.ceil(archivedTickets.length / ticketDisplayLimit);
-  }, [archivedTickets.length, ticketDisplayLimit]);
-
-  const displayTickets = React.useMemo(() => {
-    if (ticketDisplayLimit === -1) {
-      return archivedTickets;
-    }
-    const startIndex = (currentPage - 1) * ticketDisplayLimit;
-    const endIndex = startIndex + ticketDisplayLimit;
-    return archivedTickets.slice(startIndex, endIndex);
-  }, [archivedTickets, currentPage, ticketDisplayLimit]);
-
-  React.useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages > 0 ? totalPages : 1);
-    }
-  }, [currentPage, totalPages]);
 
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
@@ -62,101 +52,83 @@ export function HistoryPage() {
     });
     setSelectedTicket(null);
   };
+  
+  const formatDateForDisplay = (dateString: string) => {
+    const date = new Date(dateString);
+    date.setDate(date.getDate() + 1); // Adjust for timezone issues if necessary
+    return format(date, "MMMM d, yyyy (EEEE)");
+  };
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>ID</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Updated</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {displayTickets.length > 0 ? (
-                displayTickets.map((ticket) => (
-                <TableRow key={ticket.id}>
-                    <TableCell className="font-medium">{ticket.id}</TableCell>
-                    <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
-                    <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
-                    <TableCell>
-                    <StatusBadge status={ticket.status} />
-                    </TableCell>
-                    <TableCell>{new Date(ticket.updatedAt).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit Status
-                        </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                    </TableCell>
-                </TableRow>
-                ))
-            ) : (
-                <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                    No archived tickets found.
-                    </TableCell>
-                </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      {ticketDisplayLimit !== -1 && archivedTickets.length > ticketDisplayLimit && (
-        <div className="flex w-full items-center justify-end gap-2">
-            <span className="mr-auto text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
-            </span>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-            >
-                <ChevronsLeft className="h-4 w-4 mr-1" />
-                First
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => p - 1)}
-                disabled={currentPage === 1}
-            >
-                Previous
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(p => p + 1)}
-                disabled={currentPage >= totalPages}
-            >
-                Next
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage >= totalPages}
-            >
-                Last
-                <ChevronsRight className="h-4 w-4 ml-1" />
-            </Button>
+      {groupedTickets.length > 0 ? (
+        <Accordion type="single" collapsible className="w-full space-y-4" defaultValue={groupedTickets[0]?.[0]}>
+          {groupedTickets.map(([date, dateTickets]) => (
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm" key={date}>
+                <AccordionItem value={date} className="border-b-0">
+                    <AccordionTrigger className="p-6 hover:no-underline">
+                        <div className="flex justify-between w-full items-center">
+                            <div className="flex flex-col text-left">
+                                <span className="font-semibold">{formatDateForDisplay(date)}</span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-medium">{dateTickets.length} ticket(s)</span>
+                            </div>
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-6 pb-6">
+                        <div className="rounded-md border">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    <TableHead>ID</TableHead>
+                                    <TableHead>Title</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {dateTickets.map((ticket) => (
+                                    <TableRow key={ticket.id}>
+                                    <TableCell className="font-medium">{ticket.id}</TableCell>
+                                    <TableCell className="max-w-sm truncate">{ticket.title}</TableCell>
+                                    <TableCell>{Array.isArray(ticket.category) ? ticket.category.join(', ') : ticket.category}</TableCell>
+                                    <TableCell>
+                                        <StatusBadge status={ticket.status} />
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                            <span className="sr-only">Open menu</span>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
+                                            <Pencil className="mr-2 h-4 w-4" />
+                                            Edit Status
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                    </TableRow>
+                                ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+            </div>
+          ))}
+        </Accordion>
+      ) : (
+        <div className="flex items-center justify-center h-24 rounded-md border">
+          <p className="text-muted-foreground">No archived tickets found.</p>
         </div>
       )}
+
       <TicketDialog
         isOpen={isDialogOpen}
         setIsOpen={setIsDialogOpen}

@@ -87,15 +87,13 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                 let updatedTicket = { ...ticket };
 
                 // Rule 1: Auto-close old tickets
-                if (updatedTicket.status === 'Open' && differenceInDays(now, new Date(updatedTicket.createdAt)) >= 3) {
-                    updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now };
-                }
-                if (updatedTicket.status === 'In Progress' && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
+                const isAutoClosable = updatedTicket.status === 'Open' || updatedTicket.status === 'In Progress';
+                if (isAutoClosable && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
                     updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now };
                 }
 
                 // Rule 2: Auto-archive resolved or closed tickets
-                if (updatedTicket.status === 'Resolved' || updatedTicket.status === 'Closed') {
+                if ((updatedTicket.status === 'Resolved' || updatedTicket.status === 'Closed') && !updatedTicket.isArchived) {
                     updatedTicket = { ...updatedTicket, isArchived: true };
                 }
                 
@@ -143,6 +141,10 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                 const newTicketData = { ...updatedTicket, updatedAt: new Date() };
                 if (activeShift) {
                     newTicketData.shiftId = activeShift.id;
+                }
+                // Auto-archive on update if status is Resolved or Closed
+                if (newTicketData.status === 'Resolved' || newTicketData.status === 'Closed') {
+                    newTicketData.isArchived = true;
                 }
                 return newTicketData;
             }
