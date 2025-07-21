@@ -81,19 +81,28 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                 processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
             }
 
-            // Auto-close tickets based on status and age
+            // Auto-close and auto-archive tickets
             const now = new Date();
-            const autoClosedTickets = processedTickets.map(ticket => {
-                if (ticket.status === 'Open' && differenceInDays(now, new Date(ticket.createdAt)) >= 3) {
-                    return { ...ticket, status: 'Closed' as const, updatedAt: now };
+            const finalTickets = processedTickets.map(ticket => {
+                let updatedTicket = { ...ticket };
+
+                // Rule 1: Auto-close old tickets
+                if (updatedTicket.status === 'Open' && differenceInDays(now, new Date(updatedTicket.createdAt)) >= 3) {
+                    updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now };
                 }
-                if (ticket.status === 'In Progress' && differenceInDays(now, new Date(ticket.updatedAt)) >= 3) {
-                    return { ...ticket, status: 'Closed' as const, updatedAt: now };
+                if (updatedTicket.status === 'In Progress' && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
+                    updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now };
                 }
-                return ticket;
+
+                // Rule 2: Auto-archive resolved or closed tickets
+                if (updatedTicket.status === 'Resolved' || updatedTicket.status === 'Closed') {
+                    updatedTicket = { ...updatedTicket, isArchived: true };
+                }
+                
+                return updatedTicket;
             });
 
-            setTickets(autoClosedTickets);
+            setTickets(finalTickets);
 
         } catch (error) {
             console.error("Failed to load tickets from localStorage", error);
