@@ -31,7 +31,7 @@ const getNextTicketId = (currentTickets: Ticket[]): string => {
 export function TicketProvider({ children }: { children: React.ReactNode }) {
     const [tickets, setTickets] = React.useState<Ticket[]>([]);
     const [isLoaded, setIsLoaded] = React.useState(false);
-    const { activeShift } = useShifts();
+    const { activeShift, isLoaded: isShiftContextLoaded } = useShifts();
     
     React.useEffect(() => {
         try {
@@ -50,7 +50,17 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                 if (needsMigration) {
                     const ticketCategories: TicketCategory[] = ['Account Issue', 'Billing & Payments', 'Technical Issue', 'Feedback', 'General Query', 'Others'];
                     let ticketCounter = 1;
+                    const highestExistingId = parsedTickets
+                        .map((t: Ticket) => parseInt(t.id?.replace('TKT-', '') || '0', 10))
+                        .filter((id: number) => !isNaN(id))
+                        .reduce((max: number, current: number) => Math.max(max, current), 0);
+                    ticketCounter = highestExistingId + 1;
+                    
                     processedTickets = parsedTickets.map((t: any) => {
+                        if (t.id && t.id.startsWith('TKT-')) {
+                            return t;
+                        }
+
                         let mappedCategory: TicketCategory[];
                         if (typeof t.category === 'string') {
                             if (t.category === 'Support') { 
@@ -121,6 +131,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     }, [tickets, isLoaded]);
     
     const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => {
+        if (!isShiftContextLoaded) return;
         const now = new Date();
         setTickets(prevTickets => {
             const newTicket: Ticket = {
@@ -136,14 +147,15 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updateTicket = (updatedTicket: Ticket) => {
+        if (!isShiftContextLoaded) return;
         setTickets(prevTickets => prevTickets.map(t => {
             if (t.id === updatedTicket.id) {
-                const newTicketData = { ...updatedTicket, updatedAt: new Date() };
-                if (activeShift) {
+                const newTicketData: Ticket = { ...updatedTicket, updatedAt: new Date() };
+                if (activeShift && !newTicketData.shiftId) {
                     newTicketData.shiftId = activeShift.id;
                 }
                 // Auto-archive on update if status is Resolved or Closed
-                if (newTicketData.status === 'Resolved' || newTicketData.status === 'Closed') {
+                if ((newTicketData.status === 'Resolved' || newTicketData.status === 'Closed') && !newTicketData.isArchived) {
                     newTicketData.isArchived = true;
                 }
                 return newTicketData;

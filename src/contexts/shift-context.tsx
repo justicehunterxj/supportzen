@@ -14,6 +14,7 @@ interface ShiftContextType {
     addShift: (shift: Omit<Shift, 'id' | 'status'>) => void;
     startNewShift: (newShiftData: Pick<Shift, 'name' | 'startTime'>) => void;
     endActiveShift: () => void;
+    isLoaded: boolean;
 }
 
 const ShiftContext = React.createContext<ShiftContextType | undefined>(undefined);
@@ -129,7 +130,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, addShift, startNewShift, endActiveShift }}>
+        <ShiftContext.Provider value={{ shifts, setShifts, activeShift, addShift, startNewShift, endActiveShift, isLoaded }}>
             {children}
         </ShiftContext.Provider>
     );
