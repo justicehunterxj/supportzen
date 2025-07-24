@@ -28,7 +28,7 @@ export function HistoryPage() {
     const archivedTickets = tickets.filter(t => t.isArchived);
 
     const groups = archivedTickets.reduce((acc, ticket) => {
-      const dateKey = format(new Date(ticket.updatedAt), 'yyyy-MM-dd');
+      const dateKey = ticket.updatedAt ? format(new Date(ticket.updatedAt), 'yyyy-MM-dd') : 'no-date';
       if (!acc[dateKey]) {
         acc[dateKey] = [];
       }
@@ -36,7 +36,11 @@ export function HistoryPage() {
       return acc;
     }, {} as Record<string, Ticket[]>);
 
-    return Object.entries(groups).sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime());
+    return Object.entries(groups).sort(([dateA], [dateB]) => {
+      if (dateA === 'no-date') return 1;
+      if (dateB === 'no-date') return -1;
+      return new Date(dateB).getTime() - new Date(dateA).getTime()
+    });
   }, [tickets]);
 
   const handleEditTicket = (ticket: Ticket) => {
@@ -54,8 +58,10 @@ export function HistoryPage() {
   };
   
   const formatDateForDisplay = (dateString: string) => {
+    if(dateString === 'no-date') return "Unassigned Tickets";
     const date = new Date(dateString);
-    date.setDate(date.getDate() + 1); // Adjust for timezone issues if necessary
+    // The following line is to mitigate timezone issues when formatting
+    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
     return format(date, "MMMM d, yyyy (EEEE)");
   };
 
@@ -98,20 +104,10 @@ export function HistoryPage() {
                                         <StatusBadge status={ticket.status} />
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                            <span className="sr-only">Open menu</span>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => handleEditTicket(ticket)}>
-                                            <Pencil className="mr-2 h-4 w-4" />
-                                            Edit Status
-                                            </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <Button variant="ghost" size="icon" onClick={() => handleEditTicket(ticket)}>
+                                            <Pencil className="h-4 w-4" />
+                                            <span className="sr-only">Edit Ticket</span>
+                                        </Button>
                                     </TableCell>
                                     </TableRow>
                                 ))}
@@ -134,6 +130,7 @@ export function HistoryPage() {
         setIsOpen={setIsDialogOpen}
         ticket={selectedTicket}
         onSave={handleSaveTicket}
+        isEditingFromHistory={true}
       />
     </div>
   );

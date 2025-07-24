@@ -42,6 +42,7 @@ const ticketSchema = z.object({
   link: z.string().url({ message: "Invalid URL" }).optional().or(z.literal('')),
   aiToolsUsed: z.array(z.enum(aiTools)).optional(),
   status: z.enum(['Open', 'In Progress', 'Resolved', 'Closed']),
+  shiftId: z.string().optional(),
 });
 
 type TicketFormValues = z.infer<typeof ticketSchema>;
@@ -51,12 +52,15 @@ interface TicketDialogProps {
   setIsOpen: (open: boolean) => void;
   ticket: Ticket | null;
   onSave: (ticket: Ticket) => void;
+  isEditingFromHistory?: boolean;
 }
 
-export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialogProps) {
+export function TicketDialog({ isOpen, setIsOpen, ticket, onSave, isEditingFromHistory = false }: TicketDialogProps) {
   const [isSuggesting, setIsSuggesting] = React.useState(false);
   const { toast } = useToast();
-  const { activeShift } = useShifts();
+  const { shifts, activeShift } = useShifts();
+
+  const completedShifts = React.useMemo(() => shifts.filter(s => s.status === 'Completed'), [shifts]);
 
   const form = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
@@ -68,6 +72,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       aiToolsUsed: [],
       status: 'Open',
       category: [],
+      shiftId: undefined,
     },
   });
 
@@ -81,6 +86,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
         link: ticket.link || '',
         aiToolsUsed: ticket.aiToolsUsed || [],
         status: ticket.status,
+        shiftId: ticket.shiftId,
       });
     } else {
       form.reset({
@@ -91,6 +97,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
         aiToolsUsed: [],
         status: 'Open',
         category: [],
+        shiftId: undefined,
       });
     }
   }, [ticket, form, isOpen]);
@@ -136,6 +143,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
       link: data.link,
       aiToolsUsed: data.aiToolsUsed,
       status: data.status,
+      shiftId: data.shiftId,
       createdAt: ticket?.createdAt || now,
       updatedAt: ticket?.updatedAt || now,
     };
@@ -317,7 +325,34 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave }: TicketDialog
               )}
             />
             
-            {!ticket && activeShift && (
+            {isEditingFromHistory && (
+                 <FormField
+                 control={form.control}
+                 name="shiftId"
+                 render={({ field }) => (
+                   <FormItem>
+                     <FormLabel>Assign to Shift</FormLabel>
+                       <Select onValueChange={field.onChange} value={field.value}>
+                         <FormControl>
+                           <SelectTrigger>
+                             <SelectValue placeholder="Select a completed shift" />
+                           </SelectTrigger>
+                         </FormControl>
+                         <SelectContent>
+                            {completedShifts.map(shift => (
+                                <SelectItem key={shift.id} value={shift.id}>
+                                    {shift.name}
+                                </SelectItem>
+                            ))}
+                         </SelectContent>
+                       </Select>
+                     <FormMessage />
+                   </FormItem>
+                 )}
+               />
+            )}
+
+            {!ticket && !isEditingFromHistory && activeShift && (
               <div className="text-sm text-muted-foreground p-3 bg-secondary rounded-md">
                 This ticket will be added to your current shift: <span className="font-semibold text-foreground">{activeShift.name}</span>
               </div>
