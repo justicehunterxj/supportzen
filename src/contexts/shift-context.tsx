@@ -1,9 +1,11 @@
+
 'use client';
 
 import * as React from 'react';
 import { mockShifts } from '@/lib/mock-data';
-import type { Shift } from '@/lib/types';
+import type { Shift, Ticket } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useTickets } from './ticket-context';
 
 interface ShiftContextType {
     shifts: Shift[];
@@ -42,13 +44,21 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
                     endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
                 }));
                 
-                // Migration: Check if any shift needs a new ID
                 const needsMigration = parsedShifts.some((s: Shift) => !s.id || !s.id.startsWith('SH-'));
 
                 if (needsMigration) {
                   let shiftCounter = 1;
+                  const highestExistingId = parsedShifts
+                    .map((s: Shift) => parseInt(s.id?.replace('SH-', '') || '0', 10))
+                    .filter((id: number) => !isNaN(id))
+                    .reduce((max: number, current: number) => Math.max(max, current), 0);
+                  shiftCounter = highestExistingId + 1;
+
                   const renumberedShifts = parsedShifts.map((shift: any) => {
-                      return { ...shift, id: `SH-${shiftCounter++}` };
+                      if (!shift.id || !shift.id.startsWith('SH-')) {
+                        return { ...shift, id: `SH-${shiftCounter++}` };
+                      }
+                      return shift;
                   });
                   setShifts(renumberedShifts);
                 } else {
