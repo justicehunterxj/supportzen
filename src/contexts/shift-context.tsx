@@ -42,12 +42,18 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
                     endedAt: s.endedAt ? new Date(s.endedAt) : undefined,
                 }));
                 
-                // Migration: Re-number all shifts to ensure sequential IDs
-                let shiftCounter = 1;
-                const renumberedShifts = parsedShifts.map((shift: any) => {
-                    return { ...shift, id: `SH-${shiftCounter++}` };
-                });
-                setShifts(renumberedShifts);
+                // Migration: Check if any shift needs a new ID
+                const needsMigration = parsedShifts.some((s: Shift) => !s.id || !s.id.startsWith('SH-'));
+
+                if (needsMigration) {
+                  let shiftCounter = 1;
+                  const renumberedShifts = parsedShifts.map((shift: any) => {
+                      return { ...shift, id: `SH-${shiftCounter++}` };
+                  });
+                  setShifts(renumberedShifts);
+                } else {
+                  setShifts(parsedShifts);
+                }
 
             } else {
                 setShifts(mockShifts);
