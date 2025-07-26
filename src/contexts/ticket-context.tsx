@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -13,6 +12,7 @@ interface TicketContextType {
     addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => void;
     updateTicket: (ticket: Ticket) => void;
     deleteTicket: (ticketId: string) => void;
+    processTickets: (tickets: Ticket[]) => Ticket[];
 }
 
 const TicketContext = React.createContext<TicketContextType | undefined>(undefined);
@@ -28,6 +28,26 @@ const getNextTicketId = (currentTickets: Ticket[]): string => {
     return `TKT-${(highestId + 1).toString().padStart(3, '0')}`;
 };
 
+const processTickets = (ticketsToProcess: Ticket[]): Ticket[] => {
+    const now = new Date();
+    return ticketsToProcess.map(ticket => {
+        let updatedTicket = { ...ticket };
+
+        // Rule 1: Auto-close old tickets
+        const isAutoClosable = updatedTicket.status === 'Open' || updatedTicket.status === 'In Progress';
+        if (isAutoClosable && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
+            updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now, isArchived: true };
+        }
+
+        // Rule 2: Auto-archive resolved or closed tickets
+        if ((updatedTicket.status === 'Resolved' || updatedTicket.status === 'Closed') && !updatedTicket.isArchived) {
+            updatedTicket = { ...updatedTicket, isArchived: true };
+        }
+        
+        return updatedTicket;
+    });
+};
+
 export function TicketProvider({ children }: { children: React.ReactNode }) {
     const [tickets, setTickets] = React.useState<Ticket[]>([]);
     const [isLoaded, setIsLoaded] = React.useState(false);
@@ -36,7 +56,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
     React.useEffect(() => {
         try {
             const storedTickets = localStorage.getItem('tickets');
-            let processedTickets: Ticket[] = [];
+            let loadedTickets: Ticket[] = [];
 
             if (storedTickets) {
                 const parsedTickets = JSON.parse(storedTickets).map((t: any) => ({
@@ -56,7 +76,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                         .reduce((max: number, current: number) => Math.max(max, current), 0);
                     ticketCounter = highestExistingId + 1;
                     
-                    processedTickets = parsedTickets.map((t: any) => {
+                    loadedTickets = parsedTickets.map((t: any) => {
                         if (t.id && t.id.startsWith('TKT-')) {
                             return t;
                         }
@@ -85,31 +105,13 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                         };
                     });
                 } else {
-                    processedTickets = parsedTickets;
+                    loadedTickets = parsedTickets;
                 }
             } else {
-                processedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
+                loadedTickets = mockTickets.map(t => ({...t, isArchived: t.isArchived || false }));
             }
 
-            // Auto-close and auto-archive tickets
-            const now = new Date();
-            const finalTickets = processedTickets.map(ticket => {
-                let updatedTicket = { ...ticket };
-
-                // Rule 1: Auto-close old tickets
-                const isAutoClosable = updatedTicket.status === 'Open' || updatedTicket.status === 'In Progress';
-                if (isAutoClosable && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
-                    updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now };
-                }
-
-                // Rule 2: Auto-archive resolved or closed tickets
-                if ((updatedTicket.status === 'Resolved' || updatedTicket.status === 'Closed') && !updatedTicket.isArchived) {
-                    updatedTicket = { ...updatedTicket, isArchived: true };
-                }
-                
-                return updatedTicket;
-            });
-
+            const finalTickets = processTickets(loadedTickets);
             setTickets(finalTickets);
 
         } catch (error) {
@@ -148,29 +150,28 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
 
     const updateTicket = (updatedTicket: Ticket) => {
         if (!isShiftContextLoaded) return;
-        setTickets(prevTickets => prevTickets.map(t => {
-            if (t.id === updatedTicket.id) {
-                const newTicketData: Ticket = { ...updatedTicket, updatedAt: new Date() };
-                if (activeShift && !newTicketData.shiftId) {
-                    newTicketData.shiftId = activeShift.id;
-                }
-                // Auto-archive on update if status is Resolved or Closed
-                if ((newTicketData.status === 'Resolved' || newTicketData.status === 'Closed') && !newTicketData.isArchived) {
-                    newTicketData.isArchived = true;
-                }
-                return newTicketData;
-            }
-            return t;
-        }));
+        
+        let processedTicket = { ...updatedTicket, updatedAt: new Date() };
+
+        if (activeShift && !processedTicket.shiftId) {
+            processedTicket.shiftId = activeShift.id;
+        }
+
+        // Apply rules on the single updated ticket
+        const finalTicketArray = processTickets([processedTicket]);
+        const finalTicket = finalTicketArray[0];
+
+        setTickets(prevTickets => prevTickets.map(t => 
+            t.id === finalTicket.id ? finalTicket : t
+        ));
     };
 
     const deleteTicket = (ticketId: string) => {
         setTickets(prevTickets => prevTickets.filter(t => t.id !== ticketId));
     };
 
-
     return (
-        <TicketContext.Provider value={{ tickets, setTickets, addTicket, updateTicket, deleteTicket }}>
+        <TicketContext.Provider value={{ tickets, setTickets, addTicket, updateTicket, deleteTicket, processTickets }}>
             {children}
         </TicketContext.Provider>
     );

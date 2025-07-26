@@ -34,7 +34,7 @@ export default function SettingsPage() {
         avatarUrl, setAvatarUrl,
         ticketDisplayLimit, setTicketDisplayLimit
     } = useSettings();
-    const { tickets, setTickets } = useTickets();
+    const { tickets, setTickets, processTickets } = useTickets();
     const { shifts, setShifts } = useShifts();
     const { toast } = useToast();
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -201,7 +201,9 @@ export default function SettingsPage() {
                             shiftId: newShiftId,
                         };
                     });
-                    setTickets(parsedTickets);
+                    
+                    const finalTickets = processTickets(parsedTickets);
+                    setTickets(finalTickets);
                 }
                 
                 toast({
