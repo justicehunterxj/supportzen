@@ -36,7 +36,8 @@ const processTickets = (ticketsToProcess: Ticket[]): Ticket[] => {
         // Rule 1: Auto-close old tickets
         const isAutoClosable = updatedTicket.status === 'Open' || updatedTicket.status === 'In Progress';
         if (isAutoClosable && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
-            updatedTicket = { ...updatedTicket, status: 'Closed' as const, updatedAt: now, isArchived: true };
+            // Only update status and archived flag, keep original updatedAt
+            updatedTicket = { ...updatedTicket, status: 'Closed' as const, isArchived: true };
         }
 
         // Rule 2: Auto-archive resolved or closed tickets
