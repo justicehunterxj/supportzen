@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMounted } from '@/hooks/use-mounted';
 
 
 export default function SettingsPage() {
@@ -39,12 +40,8 @@ export default function SettingsPage() {
     const { toast } = useToast();
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [isClearAlertOpen, setIsClearAlertOpen] = React.useState(false);
-    const [mounted, setMounted] = React.useState(false);
+    const isMounted = useMounted();
     const avatarFileInputRef = React.useRef<HTMLInputElement>(null);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const handleAvatarButtonClick = () => {
         avatarFileInputRef.current?.click();
@@ -264,7 +261,7 @@ export default function SettingsPage() {
         }
     };
 
-    if (!mounted) {
+    if (!isMounted) {
         return (
             <div className="space-y-6">
                 <Card>

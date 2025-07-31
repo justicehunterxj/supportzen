@@ -17,12 +17,15 @@ import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { format } from 'date-fns';
+import { useMounted } from '@/hooks/use-mounted';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function HistoryPage() {
   const { tickets, updateTicket } = useTickets();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<Ticket | null>(null);
   const { toast } = useToast();
+  const isMounted = useMounted();
 
   const groupedTickets = React.useMemo(() => {
     const archivedTickets = tickets.filter(t => t.isArchived);
@@ -64,6 +67,33 @@ export function HistoryPage() {
     date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
     return format(date, "MMMM d, yyyy (EEEE)");
   };
+  
+  if (!isMounted) {
+    return (
+        <div className="space-y-4">
+            <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 space-y-4">
+                <div className="flex justify-between w-full items-center">
+                    <div className="flex flex-col text-left gap-2">
+                        <Skeleton className="h-5 w-48" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-5 w-24" />
+                    </div>
+                </div>
+            </div>
+             <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6 space-y-4">
+                <div className="flex justify-between w-full items-center">
+                    <div className="flex flex-col text-left gap-2">
+                        <Skeleton className="h-5 w-48" />
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-5 w-24" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="space-y-4">
