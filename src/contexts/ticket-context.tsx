@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { differenceInDays } from 'date-fns';
+import { differenceInHours } from 'date-fns';
 import { mockTickets } from '@/lib/mock-data';
 import type { Ticket, TicketCategory } from '@/lib/types';
 import { useShifts } from './shift-context';
@@ -35,8 +35,7 @@ const processTickets = (ticketsToProcess: Ticket[]): Ticket[] => {
 
         // Rule 1: Auto-close old tickets
         const isAutoClosable = updatedTicket.status === 'Open' || updatedTicket.status === 'In Progress';
-        if (isAutoClosable && differenceInDays(now, new Date(updatedTicket.updatedAt)) >= 3) {
-            // Only update status and archived flag, keep original updatedAt
+        if (isAutoClosable && differenceInHours(now, new Date(updatedTicket.updatedAt)) >= 48) {
             updatedTicket = { ...updatedTicket, status: 'Closed' as const, isArchived: true };
         }
 
