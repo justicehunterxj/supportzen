@@ -67,17 +67,22 @@ export function ShiftTimer() {
 
     const handleEndShiftClick = () => {
         if (!activeShift) return;
-
-        // Find tickets that were updated during the active shift
+    
+        const startedAt = activeShift.startedAt ? new Date(activeShift.startedAt) : new Date();
+    
+        // Find tickets that were handled during the active shift.
+        // This includes tickets created during the shift OR tickets that were updated during the shift.
         const shiftTickets = tickets.filter(ticket => {
             if (!activeShift.startedAt) return false;
-            const updatedAt = new Date(ticket.updatedAt);
-            const startedAt = new Date(activeShift.startedAt);
-            return updatedAt >= startedAt && ticket.shiftId === activeShift.id;
+            
+            const ticketWasCreatedDuringShift = ticket.shiftId === activeShift.id;
+            const ticketWasUpdatedDuringShift = new Date(ticket.updatedAt) >= startedAt;
+            
+            return ticketWasCreatedDuringShift || ticketWasUpdatedDuringShift;
         });
-
+    
         const toArchive = shiftTickets.filter(
-            (ticket) => ticket.status !== 'In Progress'
+            (ticket) => ticket.status !== 'In Progress' && ticket.status !== 'Open'
         );
         
         if (toArchive.length > 0) {
@@ -94,7 +99,7 @@ export function ShiftTimer() {
 
         const ticketsToUpdate = tickets.map(ticket => {
             if (ticketIdsToArchive.has(ticket.id)) {
-                return { ...ticket, isArchived: true };
+                return { ...ticket, isArchived: true, shiftId: activeShift?.id };
             }
             return ticket;
         });
@@ -174,7 +179,7 @@ export function ShiftTimer() {
                 <AlertDialogHeader>
                     <AlertDialogTitle>End Shift and Archive Tickets?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will end your current shift. Tickets ({ticketsToArchive.length}) that are 'Open', 'Resolved', or 'Closed' will be moved to the History tab. 'In Progress' tickets will remain on the dashboard.
+                        This will end your current shift. Tickets ({ticketsToArchive.length}) that are 'Resolved' or 'Closed' will be moved to the History tab. 'In Progress' or 'Open' tickets will remain on the dashboard.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
