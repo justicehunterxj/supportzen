@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -11,7 +12,7 @@ import { useSettings, initialAvatar } from '@/contexts/settings-context';
 import { useToast } from '@/hooks/use-toast';
 import { useTickets } from '@/contexts/ticket-context';
 import { useShifts } from '@/contexts/shift-context';
-import { Download, Upload, Sun, Moon, Monitor, Trash2 } from 'lucide-react';
+import { Download, Upload, Sun, Moon, Monitor, Trash2, FileSpreadsheet } from 'lucide-react';
 import type { Ticket, Shift, TicketCategory } from '@/lib/types';
 import type { TimeFormat } from '@/contexts/settings-context';
 import {
@@ -99,7 +100,7 @@ export default function SettingsPage() {
             URL.revokeObjectURL(url);
             toast({
                 title: "Export Successful",
-                description: "Your data and settings have been exported.",
+                description: "Your data and settings have been exported as JSON.",
             });
         } catch (error) {
             console.error("Export failed", error);
@@ -110,6 +111,58 @@ export default function SettingsPage() {
             });
         }
     };
+
+    const handleExportCSV = () => {
+        try {
+            const headers = [
+                'ID', 'Title', 'Description', 'Categories', 'Agent Response', 'Link',
+                'AI Tools Used', 'Status', 'Created At', 'Updated At', 'Shift ID', 'Is Archived'
+            ];
+
+            const replacer = (_key: any, value: any) => (value === null || value === undefined) ? '' : value;
+
+            const csvContent = tickets.map(ticket =>
+                [
+                    ticket.id,
+                    `"${ticket.title.replace(/"/g, '""')}"`,
+                    `"${ticket.description.replace(/"/g, '""')}"`,
+                    `"${Array.isArray(ticket.category) ? ticket.category.join(', ') : ''}"`,
+                    `"${(ticket.agentResponse || '').replace(/"/g, '""')}"`,
+                    ticket.link || '',
+                    `"${Array.isArray(ticket.aiToolsUsed) ? ticket.aiToolsUsed.join(', ') : ''}"`,
+                    ticket.status,
+                    ticket.createdAt.toISOString(),
+                    ticket.updatedAt.toISOString(),
+                    ticket.shiftId || '',
+                    ticket.isArchived ? 'Yes' : 'No'
+                ].map(cell => replacer(null, cell)).join(',')
+            );
+
+            const csvString = [headers.join(','), ...csvContent].join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `supportzen-tickets-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            toast({
+                title: "CSV Export Successful",
+                description: "Your tickets have been exported as a CSV file.",
+            });
+
+        } catch (error) {
+            console.error("CSV Export failed", error);
+            toast({
+                variant: 'destructive',
+                title: "CSV Export Failed",
+                description: "Could not export your ticket data as CSV.",
+            });
+        }
+    };
+
 
     const handleImportClick = () => {
         fileInputRef.current?.click();
@@ -308,7 +361,8 @@ export default function SettingsPage() {
                         <CardTitle>Data Management</CardTitle>
                         <CardDescription>Import, export, or clear your dashboard data and settings.</CardDescription>
                     </CardHeader>
-                    <CardContent className="flex gap-4">
+                    <CardContent className="flex flex-wrap gap-4">
+                         <Skeleton className="h-10 w-32" />
                          <Skeleton className="h-10 w-32" />
                          <Skeleton className="h-10 w-32" />
                          <Skeleton className="h-10 w-32" />
@@ -415,10 +469,14 @@ export default function SettingsPage() {
                     <CardTitle>Data Management</CardTitle>
                     <CardDescription>Import, export, or clear your dashboard data and settings.</CardDescription>
                 </CardHeader>
-                <CardContent className="flex gap-4">
+                <CardContent className="flex flex-wrap gap-4">
                      <Button onClick={handleExport} variant="outline" className="gap-2">
                         <Download className="h-4 w-4"/>
-                        Export Data
+                        Export JSON
+                    </Button>
+                    <Button onClick={handleExportCSV} variant="outline" className="gap-2">
+                        <FileSpreadsheet className="h-4 w-4"/>
+                        Export CSV
                     </Button>
                     <Button onClick={handleImportClick} variant="outline" className="gap-2">
                         <Upload className="h-4 w-4"/>
@@ -460,3 +518,5 @@ export default function SettingsPage() {
         </div>
     );
 }
+
+    
