@@ -56,7 +56,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   
   const bottomMenuItems = [
     { href: '/settings', label: 'Settings', icon: Settings },
-    { href: '#', label: 'Help', icon: HelpCircle },
+    { href: '/help', label: 'Help', icon: HelpCircle },
   ];
 
   return (
