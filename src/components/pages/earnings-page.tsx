@@ -59,10 +59,10 @@ export function EarningsPage() {
     const firstEarningDate = new Date(sortedDates[sortedDates.length - 1]);
     const lastEarningDate = new Date(sortedDates[0]);
     
-    const weeks = eachWeekOfInterval({ start: firstEarningDate, end: lastEarningDate }, { weekStartsOn: 6 });
+    const weeks = eachWeekOfInterval({ start: firstEarningDate, end: lastEarningDate }, { weekStartsOn: 1 });
 
     return weeks.map(weekStart => {
-        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 6 });
+        const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
         let weeklyTotal = 0;
         let ticketCount = 0;
         
@@ -199,7 +199,7 @@ export function EarningsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Weekly Earnings Report</CardTitle>
-                    <CardDescription>A summary of your earnings aggregated by week (Saturday - Friday).</CardDescription>
+                    <CardDescription>A summary of your earnings aggregated by week (Monday - Sunday).</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {weeklyEarnings.length > 0 ? (
