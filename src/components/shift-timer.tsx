@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -68,21 +69,13 @@ export function ShiftTimer() {
     const handleEndShiftClick = () => {
         if (!activeShift) return;
     
-        const startedAt = activeShift.startedAt ? new Date(activeShift.startedAt) : new Date();
+        // Find tickets that are associated with the current shift.
+        const shiftTickets = tickets.filter(ticket => ticket.shiftId === activeShift.id);
     
-        // Find tickets that were handled during the active shift.
-        // This includes tickets created during the shift OR tickets that were updated during the shift.
-        const shiftTickets = tickets.filter(ticket => {
-            if (!activeShift.startedAt) return false;
-            
-            const ticketWasCreatedDuringShift = ticket.shiftId === activeShift.id;
-            const ticketWasUpdatedDuringShift = new Date(ticket.updatedAt) >= startedAt;
-            
-            return ticketWasCreatedDuringShift || ticketWasUpdatedDuringShift;
-        });
-    
+        // Of those tickets, find the ones that are resolved or closed and not yet archived.
         const toArchive = shiftTickets.filter(
-            (ticket) => ticket.status !== 'In Progress' && ticket.status !== 'Open'
+            (ticket) => 
+                (ticket.status === 'Resolved' || ticket.status === 'Closed') && !ticket.isArchived
         );
         
         if (toArchive.length > 0) {
