@@ -80,24 +80,26 @@ export function ShiftTimer() {
             setTicketsToArchive(toArchive);
             setIsArchiveAlertOpen(true);
         } else {
-            // If no tickets to archive, just end the shift
             endActiveShift();
         }
     };
     
     const handleArchiveAndEndShift = () => {
-        if (!activeShift) return;
-        const ticketIdsToArchive = new Set(ticketsToArchive.map(t => t.id));
+        const ticketIdsToArchive = ticketsToArchive.map(t => t.id);
+        
+        if (ticketIdsToArchive.length > 0) {
+            const archiveSet = new Set(ticketIdsToArchive);
+            setTickets(currentTickets =>
+              currentTickets.map(ticket =>
+                archiveSet.has(ticket.id)
+                  ? { ...ticket, isArchived: true }
+                  : ticket
+              )
+            );
+        }
 
-        const ticketsToUpdate = tickets.map(ticket => {
-            if (ticketIdsToArchive.has(ticket.id)) {
-                return { ...ticket, isArchived: true };
-            }
-            return ticket;
-        });
-    
-        setTickets(ticketsToUpdate);
         endActiveShift();
+
         setIsArchiveAlertOpen(false);
         setTicketsToArchive([]);
     };
@@ -175,7 +177,10 @@ export function ShiftTimer() {
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => {
+                        setIsArchiveAlertOpen(false);
+                        setTicketsToArchive([]);
+                    }}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         className={buttonVariants({ variant: "default" })}
                         onClick={handleArchiveAndEndShift}

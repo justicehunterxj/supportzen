@@ -5,7 +5,6 @@ import * as React from 'react';
 import { mockShifts } from '@/lib/mock-data';
 import type { Shift, Ticket } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { useTickets } from './ticket-context';
 
 interface ShiftContextType {
     shifts: Shift[];
@@ -122,6 +121,7 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
     const endActiveShift = () => {
         if (activeShift) {
             setShifts(shifts.map(s => s.id === activeShift.id ? { ...s, status: 'Completed', endedAt: new Date() } : s));
+            
             toast({
                 title: "Shift Ended",
                 description: `Shift "${activeShift.name}" has been completed.`,
