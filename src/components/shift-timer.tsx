@@ -34,14 +34,14 @@ export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [isArchiveAlertOpen, setIsArchiveAlertOpen] = React.useState(false);
     
-    const ticketsToArchive = React.useMemo(() => {
-        if (!activeShift) return [];
+    const ticketsToArchiveCount = React.useMemo(() => {
+        if (!activeShift) return 0;
         return tickets.filter(
             (ticket) =>
                 ticket.shiftId === activeShift.id &&
                 (ticket.status === 'Resolved' || ticket.status === 'Closed') &&
                 !ticket.isArchived
-        );
+        ).length;
     }, [tickets, activeShift]);
 
     React.useEffect(() => {
@@ -80,7 +80,7 @@ export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
     };
 
     const handleEndShiftClick = () => {
-        if (ticketsToArchive.length > 0) {
+        if (ticketsToArchiveCount > 0) {
             setIsArchiveAlertOpen(true);
         } else {
             onEndShift();
@@ -161,7 +161,7 @@ export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
                 <AlertDialogHeader>
                     <AlertDialogTitle>End Shift and Archive Tickets?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will end your current shift. Tickets ({ticketsToArchive.length}) that are 'Resolved' or 'Closed' will be moved to the History tab. 'In Progress' or 'Open' tickets will remain on the dashboard.
+                        This will end your current shift. Tickets ({ticketsToArchiveCount}) that are 'Resolved' or 'Closed' will be moved to the History tab. 'In Progress' or 'Open' tickets will remain on the dashboard.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

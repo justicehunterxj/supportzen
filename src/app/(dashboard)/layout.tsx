@@ -33,6 +33,7 @@ import { ShiftProvider, useShifts } from '@/contexts/shift-context';
 import { TicketProvider, useTickets } from '@/contexts/ticket-context';
 import { SettingsProvider, useSettings } from '@/contexts/settings-context';
 import { ShiftTimer } from '@/components/shift-timer';
+import { useToast } from '@/hooks/use-toast';
 
 const SupportZenIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-primary">
@@ -46,7 +47,8 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { avatarUrl } = useSettings();
   const { tickets, setTickets } = useTickets();
-  const { endActiveShift } = useShifts();
+  const { activeShift, endActiveShift } = useShifts();
+  const { toast } = useToast();
 
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -63,7 +65,29 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   ];
 
   const handleEndShift = () => {
-    endActiveShift(setTickets);
+    if (activeShift) {
+        const archivedTicketIds = tickets
+            .filter(ticket => 
+                ticket.shiftId === activeShift.id && 
+                (ticket.status === 'Resolved' || ticket.status === 'Closed')
+            )
+            .map(ticket => ticket.id);
+
+        setTickets(currentTickets =>
+            currentTickets.map(ticket =>
+                archivedTicketIds.includes(ticket.id)
+                    ? { ...ticket, isArchived: true }
+                    : ticket
+            )
+        );
+
+        endActiveShift();
+
+        toast({
+            title: "Shift Ended",
+            description: `Shift "${activeShift.name}" has been completed. ${archivedTicketIds.length} tickets were archived.`,
+        });
+    }
   };
 
 
