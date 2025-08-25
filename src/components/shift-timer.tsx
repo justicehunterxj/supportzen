@@ -69,13 +69,11 @@ export function ShiftTimer() {
     const handleEndShiftClick = () => {
         if (!activeShift) return;
     
-        // Find tickets that are associated with the current shift.
-        const shiftTickets = tickets.filter(ticket => ticket.shiftId === activeShift.id);
-    
-        // Of those tickets, find the ones that are resolved or closed and not yet archived.
-        const toArchive = shiftTickets.filter(
-            (ticket) => 
-                (ticket.status === 'Resolved' || ticket.status === 'Closed') && !ticket.isArchived
+        const toArchive = tickets.filter(
+            (ticket) =>
+                ticket.shiftId === activeShift.id &&
+                (ticket.status === 'Resolved' || ticket.status === 'Closed') &&
+                !ticket.isArchived
         );
         
         if (toArchive.length > 0) {
@@ -92,7 +90,7 @@ export function ShiftTimer() {
 
         const ticketsToUpdate = tickets.map(ticket => {
             if (ticketIdsToArchive.has(ticket.id)) {
-                return { ...ticket, isArchived: true, shiftId: activeShift?.id };
+                return { ...ticket, isArchived: true };
             }
             return ticket;
         });

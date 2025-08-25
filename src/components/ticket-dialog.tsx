@@ -97,10 +97,10 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave, isEditingFromH
         aiToolsUsed: [],
         status: 'Open',
         category: [],
-        shiftId: undefined,
+        shiftId: activeShift?.id,
       });
     }
-  }, [ticket, form, isOpen]);
+  }, [ticket, form, isOpen, activeShift]);
 
   const handleSuggestStatus = async () => {
     setIsSuggesting(true);
@@ -143,9 +143,10 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave, isEditingFromH
       link: data.link,
       aiToolsUsed: data.aiToolsUsed,
       status: data.status,
-      shiftId: data.shiftId,
+      shiftId: data.shiftId || (activeShift ? activeShift.id : undefined),
       createdAt: ticket?.createdAt || now,
       updatedAt: ticket?.updatedAt || now,
+      isArchived: ticket?.isArchived || false,
     };
     onSave(ticketData);
     setIsOpen(false);

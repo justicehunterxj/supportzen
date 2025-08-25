@@ -16,7 +16,7 @@ export type Ticket = {
   createdAt: Date;
   updatedAt: Date;
   shiftId?: string;
-  isArchived?: boolean;
+  isArchived: boolean;
 };
 
 export type Shift = {

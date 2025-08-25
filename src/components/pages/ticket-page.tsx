@@ -151,8 +151,7 @@ export function TicketPage() {
         description: `Ticket ${ticketData.id} has been successfully updated.`,
       });
     } else {
-      const {id, createdAt, updatedAt, ...newTicketData} = ticketData;
-      addTicket(newTicketData);
+      addTicket(ticketData);
       toast({
         title: "Ticket Created",
         description: `A new ticket has been successfully created.`,

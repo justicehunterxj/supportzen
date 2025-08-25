@@ -9,7 +9,7 @@ import { useShifts } from './shift-context';
 interface TicketContextType {
     tickets: Ticket[];
     setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => void;
+    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'shiftId'>) => void;
     updateTicket: (ticket: Ticket) => void;
     deleteTicket: (ticketId: string) => void;
     processTickets: (tickets: Ticket[]) => Ticket[];
@@ -39,10 +39,8 @@ const processTickets = (ticketsToProcess: Ticket[]): Ticket[] => {
             updatedTicket = { ...updatedTicket, status: 'Closed' as const, isArchived: true };
         }
 
-        // Rule 2: Auto-archive resolved or closed tickets
-        if ((updatedTicket.status === 'Resolved' || updatedTicket.status === 'Closed') && !updatedTicket.isArchived) {
-            updatedTicket = { ...updatedTicket, isArchived: true };
-        }
+        // Rule 2: Auto-archive resolved or closed tickets is handled by the shift-end process.
+        // We no longer auto-archive here to prevent unexpected behavior.
         
         return updatedTicket;
     });
@@ -132,7 +130,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [tickets, isLoaded]);
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => {
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'shiftId'>) => {
         if (!isShiftContextLoaded) return;
         const now = new Date();
         setTickets(prevTickets => {
@@ -153,6 +151,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         
         let processedTicket = { ...updatedTicket, updatedAt: new Date() };
 
+        // Ensure the ticket is associated with the active shift if it's being updated
         if (activeShift && !processedTicket.shiftId) {
             processedTicket.shiftId = activeShift.id;
         }
