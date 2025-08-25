@@ -86,6 +86,7 @@ export function ShiftTimer() {
     };
     
     const handleArchiveAndEndShift = () => {
+        if (!activeShift) return;
         const ticketIdsToArchive = new Set(ticketsToArchive.map(t => t.id));
 
         const ticketsToUpdate = tickets.map(ticket => {

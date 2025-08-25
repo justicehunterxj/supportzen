@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -9,7 +10,7 @@ import { useShifts } from './shift-context';
 interface TicketContextType {
     tickets: Ticket[];
     setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'shiftId'>) => void;
+    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => void;
     updateTicket: (ticket: Ticket) => void;
     deleteTicket: (ticketId: string) => void;
     processTickets: (tickets: Ticket[]) => Ticket[];
@@ -35,12 +36,9 @@ const processTickets = (ticketsToProcess: Ticket[]): Ticket[] => {
 
         // Rule 1: Auto-close old tickets
         const isAutoClosable = updatedTicket.status === 'Open' || updatedTicket.status === 'In Progress';
-        if (isAutoClosable && differenceInHours(now, new Date(updatedTicket.updatedAt)) >= 48) {
-            updatedTicket = { ...updatedTicket, status: 'Closed' as const, isArchived: true };
+        if (isAutoClosable && differenceInHours(now, new Date(ticket.updatedAt)) >= 48) {
+            updatedTicket = { ...updatedTicket, status: 'Closed' as const, isArchived: true, updatedAt: ticket.updatedAt };
         }
-
-        // Rule 2: Auto-archive resolved or closed tickets is handled by the shift-end process.
-        // We no longer auto-archive here to prevent unexpected behavior.
         
         return updatedTicket;
     });
@@ -130,7 +128,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [tickets, isLoaded]);
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived' | 'shiftId'>) => {
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => {
         if (!isShiftContextLoaded) return;
         const now = new Date();
         setTickets(prevTickets => {
