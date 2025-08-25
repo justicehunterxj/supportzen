@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -77,28 +78,30 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave, isEditingFromH
   });
 
   React.useEffect(() => {
-    if (ticket) {
-      form.reset({
-        title: ticket.title,
-        description: ticket.description,
-        category: ticket.category,
-        agentResponse: ticket.agentResponse || '',
-        link: ticket.link || '',
-        aiToolsUsed: ticket.aiToolsUsed || [],
-        status: ticket.status,
-        shiftId: ticket.shiftId,
-      });
-    } else {
-      form.reset({
-        title: '',
-        description: '',
-        agentResponse: '',
-        link: '',
-        aiToolsUsed: [],
-        status: 'Open',
-        category: [],
-        shiftId: activeShift?.id,
-      });
+    if (isOpen) {
+      if (ticket) {
+        form.reset({
+          title: ticket.title,
+          description: ticket.description,
+          category: ticket.category,
+          agentResponse: ticket.agentResponse || '',
+          link: ticket.link || '',
+          aiToolsUsed: ticket.aiToolsUsed || [],
+          status: ticket.status,
+          shiftId: ticket.shiftId,
+        });
+      } else {
+        form.reset({
+          title: '',
+          description: '',
+          agentResponse: '',
+          link: '',
+          aiToolsUsed: [],
+          status: 'Open',
+          category: [],
+          shiftId: activeShift?.id,
+        });
+      }
     }
   }, [ticket, form, isOpen, activeShift]);
 
@@ -145,7 +148,7 @@ export function TicketDialog({ isOpen, setIsOpen, ticket, onSave, isEditingFromH
       status: data.status,
       shiftId: data.shiftId || (activeShift ? activeShift.id : undefined),
       createdAt: ticket?.createdAt || now,
-      updatedAt: ticket?.updatedAt || now,
+      updatedAt: now,
       isArchived: ticket?.isArchived || false,
     };
     onSave(ticketData);

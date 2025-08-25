@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -145,13 +146,13 @@ export function TicketPage() {
 
   const handleSaveTicket = (ticketData: Ticket) => {
     if (selectedTicket) {
-      updateTicket(ticketData);
+      updateTicket(ticketData, activeShift?.id);
       toast({
         title: "Ticket Updated",
         description: `Ticket ${ticketData.id} has been successfully updated.`,
       });
     } else {
-      addTicket(ticketData);
+      addTicket(ticketData, activeShift?.id);
       toast({
         title: "Ticket Created",
         description: `A new ticket has been successfully created.`,
@@ -168,7 +169,7 @@ export function TicketPage() {
   };
 
   const handleArchiveTicket = (ticketToArchive: Ticket) => {
-    updateTicket({ ...ticketToArchive, isArchived: true });
+    updateTicket({ ...ticketToArchive, isArchived: true }, activeShift?.id);
     toast({
       title: "Ticket Archived",
       description: `Ticket ${ticketToArchive.id} has been moved to History.`,

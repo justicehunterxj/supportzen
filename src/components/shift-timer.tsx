@@ -22,14 +22,27 @@ import {
     AlertDialogTitle,
   } from "@/components/ui/alert-dialog";
 
-export function ShiftTimer() {
-    const { activeShift, startNewShift, endActiveShift } = useShifts();
-    const { tickets, setTickets } = useTickets();
+interface ShiftTimerProps {
+    onEndShift: () => void;
+}
+
+export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
+    const { activeShift, startNewShift } = useShifts();
+    const { tickets } = useTickets();
     const { timeFormat } = useSettings();
     const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [isArchiveAlertOpen, setIsArchiveAlertOpen] = React.useState(false);
-    const [ticketsToArchive, setTicketsToArchive] = React.useState<Ticket[]>([]);
+    
+    const ticketsToArchive = React.useMemo(() => {
+        if (!activeShift) return [];
+        return tickets.filter(
+            (ticket) =>
+                ticket.shiftId === activeShift.id &&
+                (ticket.status === 'Resolved' || ticket.status === 'Closed') &&
+                !ticket.isArchived
+        );
+    }, [tickets, activeShift]);
 
     React.useEffect(() => {
         if (!activeShift || !activeShift.startedAt) {
@@ -67,41 +80,16 @@ export function ShiftTimer() {
     };
 
     const handleEndShiftClick = () => {
-        if (!activeShift) return;
-    
-        const toArchive = tickets.filter(
-            (ticket) =>
-                ticket.shiftId === activeShift.id &&
-                (ticket.status === 'Resolved' || ticket.status === 'Closed') &&
-                !ticket.isArchived
-        );
-        
-        if (toArchive.length > 0) {
-            setTicketsToArchive(toArchive);
+        if (ticketsToArchive.length > 0) {
             setIsArchiveAlertOpen(true);
         } else {
-            endActiveShift();
+            onEndShift();
         }
     };
     
     const handleArchiveAndEndShift = () => {
-        const ticketIdsToArchive = ticketsToArchive.map(t => t.id);
-        
-        if (ticketIdsToArchive.length > 0) {
-            const archiveSet = new Set(ticketIdsToArchive);
-            setTickets(currentTickets =>
-              currentTickets.map(ticket =>
-                archiveSet.has(ticket.id)
-                  ? { ...ticket, isArchived: true }
-                  : ticket
-              )
-            );
-        }
-
-        endActiveShift();
-
+        onEndShift();
         setIsArchiveAlertOpen(false);
-        setTicketsToArchive([]);
     };
 
 
@@ -177,10 +165,7 @@ export function ShiftTimer() {
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => {
-                        setIsArchiveAlertOpen(false);
-                        setTicketsToArchive([]);
-                    }}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         className={buttonVariants({ variant: "default" })}
                         onClick={handleArchiveAndEndShift}

@@ -29,8 +29,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ShiftProvider } from '@/contexts/shift-context';
-import { TicketProvider } from '@/contexts/ticket-context';
+import { ShiftProvider, useShifts } from '@/contexts/shift-context';
+import { TicketProvider, useTickets } from '@/contexts/ticket-context';
 import { SettingsProvider, useSettings } from '@/contexts/settings-context';
 import { ShiftTimer } from '@/components/shift-timer';
 
@@ -45,6 +45,8 @@ const SupportZenIcon = () => (
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { avatarUrl } = useSettings();
+  const { tickets, setTickets } = useTickets();
+  const { endActiveShift } = useShifts();
 
   const menuItems = [
     { href: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -59,6 +61,11 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/help', label: 'Help', icon: HelpCircle },
   ];
+
+  const handleEndShift = () => {
+    endActiveShift(setTickets);
+  };
+
 
   return (
     <SidebarProvider>
@@ -124,7 +131,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
               <div className="flex-1">
                   {/* Can add breadcrumbs or page title here */}
               </div>
-              <ShiftTimer />
+              <ShiftTimer onEndShift={handleEndShift} />
               <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
                   <Users className="h-4 w-4" />
                   <span className="sr-only">Manage Team</span>
@@ -147,11 +154,11 @@ export default function DashboardLayout({
 }) {
   return (
     <SettingsProvider>
-      <ShiftProvider>
-        <TicketProvider>
+      <TicketProvider>
+        <ShiftProvider>
             <DashboardLayoutContent>{children}</DashboardLayoutContent>
-        </TicketProvider>
-      </ShiftProvider>
+        </ShiftProvider>
+      </TicketProvider>
     </SettingsProvider>
   )
 }

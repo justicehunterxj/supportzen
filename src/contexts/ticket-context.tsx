@@ -5,13 +5,12 @@ import * as React from 'react';
 import { differenceInHours } from 'date-fns';
 import { mockTickets } from '@/lib/mock-data';
 import type { Ticket, TicketCategory } from '@/lib/types';
-import { useShifts } from './shift-context';
 
 interface TicketContextType {
     tickets: Ticket[];
     setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>;
-    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => void;
-    updateTicket: (ticket: Ticket) => void;
+    addTicket: (ticket: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>, activeShiftId?: string) => void;
+    updateTicket: (ticket: Ticket, activeShiftId?: string) => void;
     deleteTicket: (ticketId: string) => void;
     processTickets: (tickets: Ticket[]) => Ticket[];
 }
@@ -47,7 +46,6 @@ const processTickets = (ticketsToProcess: Ticket[]): Ticket[] => {
 export function TicketProvider({ children }: { children: React.ReactNode }) {
     const [tickets, setTickets] = React.useState<Ticket[]>([]);
     const [isLoaded, setIsLoaded] = React.useState(false);
-    const { activeShift, isLoaded: isShiftContextLoaded } = useShifts();
     
     React.useEffect(() => {
         try {
@@ -128,8 +126,7 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
         }
     }, [tickets, isLoaded]);
     
-    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>) => {
-        if (!isShiftContextLoaded) return;
+    const addTicket = (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt' | 'isArchived'>, activeShiftId?: string) => {
         const now = new Date();
         setTickets(prevTickets => {
             const newTicket: Ticket = {
@@ -137,24 +134,20 @@ export function TicketProvider({ children }: { children: React.ReactNode }) {
                 id: getNextTicketId(prevTickets),
                 createdAt: now,
                 updatedAt: now,
-                shiftId: activeShift?.id,
+                shiftId: activeShiftId,
                 isArchived: false,
             };
             return [newTicket, ...prevTickets];
         });
     };
 
-    const updateTicket = (updatedTicket: Ticket) => {
-        if (!isShiftContextLoaded) return;
-        
+    const updateTicket = (updatedTicket: Ticket, activeShiftId?: string) => {
         let processedTicket = { ...updatedTicket, updatedAt: new Date() };
 
-        // Ensure the ticket is associated with the active shift if it's being updated
-        if (activeShift && !processedTicket.shiftId) {
-            processedTicket.shiftId = activeShift.id;
+        if (activeShiftId && !processedTicket.shiftId) {
+            processedTicket.shiftId = activeShiftId;
         }
 
-        // Apply rules on the single updated ticket
         const finalTicketArray = processTickets([processedTicket]);
         const finalTicket = finalTicketArray[0];
 
