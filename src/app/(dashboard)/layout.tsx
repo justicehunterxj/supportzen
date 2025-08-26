@@ -63,29 +63,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     { href: '/settings', label: 'Settings', icon: Settings },
     { href: '/help', label: 'Help', icon: HelpCircle },
   ];
-
+  
   const handleEndShift = () => {
     if (activeShift) {
-        const archivedTicketIds = tickets
-            .filter(ticket => 
-                ticket.shiftId === activeShift.id && 
-                (ticket.status === 'Resolved' || ticket.status === 'Closed')
-            )
-            .map(ticket => ticket.id);
-
-        setTickets(currentTickets =>
-            currentTickets.map(ticket =>
-                archivedTicketIds.includes(ticket.id)
-                    ? { ...ticket, isArchived: true }
-                    : ticket
-            )
-        );
-
-        endActiveShift();
-
+        const archivedTicketCount = endActiveShift(tickets, setTickets);
         toast({
             title: "Shift Ended",
-            description: `Shift "${activeShift.name}" has been completed. ${archivedTicketIds.length} tickets were archived.`,
+            description: `Shift "${activeShift.name}" has been completed. ${archivedTicketCount} tickets were archived.`,
         });
     }
   };

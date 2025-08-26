@@ -12,7 +12,7 @@ interface ShiftContextType {
     activeShift: Shift | undefined;
     addShift: (shift: Omit<Shift, 'id' | 'status'>) => void;
     startNewShift: (newShiftData: Pick<Shift, 'name' | 'startTime'>) => void;
-    endActiveShift: () => void;
+    endActiveShift: (currentTickets: Ticket[], setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>) => number;
     isLoaded: boolean;
 }
 
@@ -118,10 +118,20 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
         });
     };
     
-    const endActiveShift = () => {
+    const endActiveShift = (currentTickets: Ticket[], setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>): number => {
+        let archivedCount = 0;
         if (activeShift) {
+            const updatedTickets = currentTickets.map(ticket => {
+                if (ticket.shiftId === activeShift.id && (ticket.status === 'Resolved' || ticket.status === 'Closed')) {
+                    archivedCount++;
+                    return { ...ticket, isArchived: true };
+                }
+                return ticket;
+            });
+            setTickets(updatedTickets);
             setShifts(shifts.map(s => s.id === activeShift.id ? { ...s, status: 'Completed', endedAt: new Date() } : s));
         }
+        return archivedCount;
     };
 
     return (
