@@ -21,6 +21,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
   } from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 interface ShiftTimerProps {
     onEndShift: () => void;
@@ -30,18 +31,14 @@ export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
     const { activeShift, startNewShift } = useShifts();
     const { tickets } = useTickets();
     const { timeFormat } = useSettings();
+    const { toast } = useToast();
     const [elapsedTime, setElapsedTime] = React.useState('00:00:00');
     const [isDialogOpen, setIsDialogOpen] = React.useState(false);
     const [isArchiveAlertOpen, setIsArchiveAlertOpen] = React.useState(false);
     
-    const ticketsToArchiveCount = React.useMemo(() => {
+    const ticketsInShiftCount = React.useMemo(() => {
         if (!activeShift) return 0;
-        return tickets.filter(
-            (ticket) =>
-                ticket.shiftId === activeShift.id &&
-                (ticket.status === 'Resolved' || ticket.status === 'Closed') &&
-                !ticket.isArchived
-        ).length;
+        return tickets.filter(ticket => ticket.shiftId === activeShift.id).length;
     }, [tickets, activeShift]);
 
     React.useEffect(() => {
@@ -72,15 +69,27 @@ export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
     }, [activeShift, activeShift?.startedAt]);
     
     const handleStartClick = () => {
+        if(activeShift) {
+            toast({
+                variant: "destructive",
+                title: "Active Shift",
+                description: "There is already an active shift.",
+            });
+            return;
+        }
         setIsDialogOpen(true);
     };
     
     const handleSaveAndStartShift = (shiftData: Shift) => {
         startNewShift({ name: shiftData.name, startTime: shiftData.startTime });
+        toast({
+            title: "Shift Started",
+            description: `Shift "${shiftData.name}" is now active.`,
+        });
     };
 
     const handleEndShiftClick = () => {
-        if (ticketsToArchiveCount > 0) {
+        if (ticketsInShiftCount > 0) {
             setIsArchiveAlertOpen(true);
         } else {
             onEndShift();
@@ -161,7 +170,7 @@ export function ShiftTimer({ onEndShift }: ShiftTimerProps) {
                 <AlertDialogHeader>
                     <AlertDialogTitle>End Shift and Archive Tickets?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        This will end your current shift. Tickets ({ticketsToArchiveCount}) that are 'Resolved' or 'Closed' will be moved to the History tab. 'In Progress' or 'Open' tickets will remain on the dashboard.
+                        This will end your current shift. All tickets ({ticketsInShiftCount}) assigned to this shift will be moved to the History tab.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

@@ -4,7 +4,6 @@
 import * as React from 'react';
 import { mockShifts } from '@/lib/mock-data';
 import type { Shift, Ticket } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 
 interface ShiftContextType {
     shifts: Shift[];
@@ -32,7 +31,6 @@ const getNextShiftId = (currentShifts: Shift[]): string => {
 export function ShiftProvider({ children }: { children: React.ReactNode }) {
     const [shifts, setShifts] = React.useState<Shift[]>([]);
     const [isLoaded, setIsLoaded] = React.useState(false);
-    const { toast } = useToast();
 
     React.useEffect(() => {
         try {
@@ -111,18 +109,13 @@ export function ShiftProvider({ children }: { children: React.ReactNode }) {
             );
             return [newShift, ...endedShifts.filter(s => s.id !== newShift.id)];
         });
-
-        toast({
-            title: "Shift Started",
-            description: `Shift "${newShift.name}" is now active.`,
-        });
     };
     
     const endActiveShift = (currentTickets: Ticket[], setTickets: React.Dispatch<React.SetStateAction<Ticket[]>>): number => {
         let archivedCount = 0;
         if (activeShift) {
             const updatedTickets = currentTickets.map(ticket => {
-                if (ticket.shiftId === activeShift.id && (ticket.status === 'Resolved' || ticket.status === 'Closed')) {
+                if (ticket.shiftId === activeShift.id) {
                     archivedCount++;
                     return { ...ticket, isArchived: true };
                 }
