@@ -1,3 +1,4 @@
+
 export type TicketStatus = 'Open' | 'In Progress' | 'Resolved' | 'Closed';
 export type AITool = 'ChatGPT' | 'Gemini' | 'Claude' | 'Copilot' | 'Perplexity';
 export type ShiftStatus = 'Pending' | 'Active' | 'Completed';

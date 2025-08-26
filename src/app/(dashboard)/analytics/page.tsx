@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AiToolsUsageChart } from "@/components/charts/ai-tools-usage-chart";
 import { TicketsByStatusChart } from "@/components/charts/tickets-by-status-chart";
